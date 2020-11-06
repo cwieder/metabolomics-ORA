@@ -47,7 +47,10 @@ def plot_PCA(matrix, metadata, title):
     scatter_y = projected[:,1]
     samples = matrix.index.tolist()
     group = np.array([metadata[i][0] for i in samples])
-    cdict = {'Nonuser': 'red', 'E+P': 'blue', 'E-only': 'green'}
+    uniq_sample = np.unique(group)
+    cmap = ['tab:green', 'tab:orange', 'tab:blue']
+    cdict = {samp: cmap[num] for num, samp in enumerate(uniq_sample)}
+
     fig, ax = plt.subplots()
     for g in np.unique(group):
         ix = np.where(group == g)
