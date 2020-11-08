@@ -1,8 +1,9 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-import numpy as np
+import statsmodels.api as sm
 import seaborn as sns
 
 # Get metadata
@@ -64,26 +65,57 @@ def plot_PCA(matrix, metadata, title):
     cmap = ['tab:green', 'tab:orange', 'tab:blue']
     cdict = {samp: cmap[num] for num, samp in enumerate(uniq_sample)}
 
+    plt.style.use("ggplot")
     fig, ax = plt.subplots()
     for g in np.unique(group):
         ix = np.where(group == g)
         ax.scatter(scatter_x[ix], scatter_y[ix], c=cdict[g], label=g, s=15)
     ax.legend()
-    plt.style.use("ggplot")
+
     plt.title("PCA for " + title)
-    plt.xlabel("Component 1:  " + str(round(pca.explained_variance_ratio_[0], 2)) + "%")
-    plt.ylabel("Component 2: " + str(round(pca.explained_variance_ratio_[1], 2)) + "%")
-    plt.savefig(title + ".png")
+    plt.xlabel("Component 1:  " + str(round(pca.explained_variance_ratio_[0]*100, 2)) + "%")
+    plt.ylabel("Component 2: " + str(round(pca.explained_variance_ratio_[1]*100, 2)) + "%")
+    #plt.savefig(title + ".png")
     plt.show()
 
+def linear_regression(matrix):
+    # Add new columns based on metadata from dict
+    matrix['PMH_status'] = matrix.index.map(lambda x: metadata_dict[x][0])
+    matrix['Target'] = pd.factorize(matrix['PMH_status'])[0]
+    coefs = []
+    pvals = []
+    metabolites = matrix.columns.tolist()[:-2]
+    for metabolite in metabolites:
+        X = matrix[str(metabolite)]
+        y = matrix['Target']
+        model = sm.OLS(y, X.astype(float)).fit()
+        coefs.append(round(model.params[0], 4))
+        pvals.append(round(model.pvalues[0], 4))
+    padj = sm.stats.multipletests(pvals, 0.05, method="bonferroni")
+    print("Corrected alpha:", padj[3])
+    results = pd.DataFrame(zip(metabolites, coefs, pvals, padj[1]), columns=["Metabolite", "Fold-change", "P-value", "P-adjust"])
+    return results
+
+def hierarchical_clustering(matrix):
+    h = sns.clustermap(matrix, metric="correlation", cmap="vlag")
+    plt.show()
+    return h
+
 stevens_matrix_proc = data_processing(mat, 8)
-
 mat_nonusers_estrogen = stevens_matrix_proc.drop((replicate_samples + estrogen_progesterone), axis=0)
-mat_nonusers_e_p = stevens_matrix_proc.drop((replicate_samples + estrogen_only), axis=0)
-# mat_estrogen_vs_e_p = stevens_matrix_proc.drop((replicate_samples + nonusers), axis=1)
-mat_all = stevens_matrix_proc.drop(replicate_samples, axis=0)
+#plot_PCA(mat_nonusers_estrogen, metadata_dict, "non-users vs. estrogen")
 
-plot_PCA(mat_all, metadata_dict, "all groups")
-plot_PCA(mat_nonusers_estrogen, metadata_dict, "non-users vs. estrogen")
-# plot_PCA(mat_estrogen_vs_e_p, metadata_dict)
-plot_PCA(mat_nonusers_e_p, metadata_dict, "nonusers vs. estrogen+progestin")
+differential_metabolites = linear_regression(mat_nonusers_estrogen)
+DEM = differential_metabolites[differential_metabolites["P-adjust"] < 0.05]["Metabolite"].tolist()
+mat_nonusers_estrogen_DEM = mat_nonusers_estrogen[DEM]
+plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen (differentially expressed metabolites)")
+hierarchical_clustering(mat_nonusers_estrogen_DEM)
+# differential_metabolites.to_csv("differential_metabolites_nonuser_v_estrogen.csv")
+
+
+# mat_nonusers_e_p = stevens_matrix_proc.drop((replicate_samples + estrogen_only), axis=0)
+# mat_estrogen_vs_e_p = stevens_matrix_proc.drop((replicate_samples + nonusers), axis=1)
+# mat_all = stevens_matrix_proc.drop(replicate_samples, axis=0)
+
+# plot_PCA(mat_all, metadata_dict, "all groups")
+# plot_PCA(mat_nonusers_e_p, metadata_dict, "nonusers vs. estrogen+progestin")

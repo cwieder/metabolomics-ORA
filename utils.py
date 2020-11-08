@@ -32,10 +32,11 @@ def data_processing(raw_matrix, firstrow):
     log2_matrix.loc[:, :] = standarised_mat
     return log2_matrix
 
-def plot_PCA(matrix, metadata, title):
+def plot_PCA(matrix, metadata, title, labelpos):
     '''
     PCA plot
     :param matrix: processed data matrix
+    :param labelpos: position in metadata list of sample labels of interest
     :return: PCA plot
     '''
 
@@ -46,7 +47,7 @@ def plot_PCA(matrix, metadata, title):
     scatter_x = projected[:,0]
     scatter_y = projected[:,1]
     samples = matrix.index.tolist()
-    group = np.array([metadata[i][0] for i in samples])
+    group = np.array([metadata[i][labelpos] for i in samples])
     uniq_sample = np.unique(group)
     cmap = ['tab:green', 'tab:orange', 'tab:blue']
     cdict = {samp: cmap[num] for num, samp in enumerate(uniq_sample)}
@@ -58,7 +59,25 @@ def plot_PCA(matrix, metadata, title):
     ax.legend()
     plt.style.use("ggplot")
     plt.title("PCA for " + title)
-    plt.xlabel("Component 1:  " + str(round(pca.explained_variance_ratio_[0], 2)) + "%")
-    plt.ylabel("Component 2: " + str(round(pca.explained_variance_ratio_[1], 2)) + "%")
+    plt.xlabel("Component 1:  " + str(round(pca.explained_variance_ratio_[0]*100, 2)) + "%")
+    plt.ylabel("Component 2: " + str(round(pca.explained_variance_ratio_[1]*100, 2)) + "%")
     plt.savefig(title + ".png")
     plt.show()
+
+def linear_regression(matrix):
+    # Add new columns based on metadata from dict
+    matrix['PMH_status'] = matrix.index.map(lambda x: metadata_dict[x][0])
+    matrix['Target'] = pd.factorize(matrix['PMH_status'])[0]
+    coefs = []
+    pvals = []
+    metabolites = matrix.columns.tolist()[:-2]
+    for metabolite in metabolites:
+        X = matrix[str(metabolite)]
+        y = matrix['Target']
+        model = sm.OLS(y, X.astype(float)).fit()
+        coefs.append(model.params[0])
+        pvals.append(model.pvalues[0])
+    padj = sm.stats.multipletests(pvals, 0.05, method="bonferroni")
+    print("Corrected alpha:", padj[3])
+    results = pd.DataFrame(zip(metabolites, coefs, pvals, padj[1]), columns=["Metabolite", "Fold-change", "P-value", "P-adjust"])
+    return results
