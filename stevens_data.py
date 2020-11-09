@@ -5,6 +5,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 import seaborn as sns
+import scipy.stats as stats
 
 # Get metadata
 md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
@@ -18,13 +19,14 @@ estrogen_only = [k for k, v in metadata_dict.items() if v[0] not in ['Nonuser', 
 estrogen_progesterone = [k for k, v in metadata_dict.items() if v[0] not in ['Nonuser', 'E-only', np.nan]]
 
 # Get abundance matrix, transpose to n-samples by m-metabolites
-mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0).T
+mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0)
 
 def data_processing(raw_matrix, firstrow):
     '''
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
     :param raw_matrix: raw abundance matrix
     :param firstrow: First row containing values (integer)
+    :param transpose: transpose input matrix
     :return: imputed, log-transformed and standardised matrix
     '''
 
@@ -101,15 +103,61 @@ def hierarchical_clustering(matrix):
     plt.show()
     return h
 
-stevens_matrix_proc = data_processing(mat, 8)
+def over_representation_analysis(DEM_list, background_list, pathways_df):
+    # analyse each pathway
+    pathways = pathways_df.index.tolist()
+    pvalues = []
+    for pathway in pathways:
+        pathway_compounds = pathways_df.loc[pathway, :].tolist()
+        pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
+        if not pathway_compounds:
+            print("Pathway contains no compounds ")
+            pvalues.append(np.nan)
+        else:
+            # Create 2 by 2 contingency table
+            DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
+            DEM_not_in_pathway = len(np.setdiff1d(pathway_compounds, DEM_list))
+            compound_in_pathway_not_DEM = len(set(background_list) & set(pathway_compounds))
+            compound_not_in_pathway_not_DEM = len(np.setdiff1d(background_list, pathway_compounds))
+            contingency_table = np.array([[compound_in_pathway_not_DEM, DEM_in_pathway], [compound_not_in_pathway_not_DEM, DEM_not_in_pathway]])
+            # Run right tailed Fisher's exact test
+            oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
+            pvalues.append(pvalue)
+    padj = sm.stats.multipletests(pvalues, 0.05, method="bonferroni")
+    results = pd.DataFrame(zip(pathways, pvalues, padj[1]),
+                           columns=["Pathway_ID", "P-value", "P-adjust"])
+    return results
+
+
+
+stevens_matrix_proc = data_processing(mat.T, 8)
 mat_nonusers_estrogen = stevens_matrix_proc.drop((replicate_samples + estrogen_progesterone), axis=0)
 #plot_PCA(mat_nonusers_estrogen, metadata_dict, "non-users vs. estrogen")
 
 differential_metabolites = linear_regression(mat_nonusers_estrogen)
 DEM = differential_metabolites[differential_metabolites["P-adjust"] < 0.05]["Metabolite"].tolist()
 mat_nonusers_estrogen_DEM = mat_nonusers_estrogen[DEM]
-plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen (differentially expressed metabolites)")
-hierarchical_clustering(mat_nonusers_estrogen_DEM)
+# plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen (differentially expressed metabolites)")
+
+KEGG_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
+DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
+DEM_KEGG_id = [i for i in DEM_KEGG_id if str(i) != 'nan']
+print(DEM_KEGG_id)
+
+with open("DEM_Stevens.txt", "a") as outfile:
+    for i in DEM_KEGG_id:
+        outfile.write(i + "\n")
+
+stevens_background_list = mat['KEGG'].dropna().tolist()
+print(len(stevens_background_list))
+
+with open("background_list_Stevens.txt", "a") as outfile_bglist:
+    for i in stevens_background_list:
+        outfile_bglist.write(i + "\n")
+
+print(len(DEM_KEGG_id))
+ORA_res = over_representation_analysis(DEM_KEGG_id, stevens_background_list, KEGG_pathways)
+ORA_res.to_csv("ORA_Stevens.csv")
 # differential_metabolites.to_csv("differential_metabolites_nonuser_v_estrogen.csv")
 
 

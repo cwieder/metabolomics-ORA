@@ -6,6 +6,8 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 import seaborn as sns
+import scipy.stats as stats
+import statsmodels.api as sm
 
 def data_processing(raw_matrix, firstrow):
     '''
@@ -64,9 +66,9 @@ def plot_PCA(matrix, metadata, title, labelpos):
     plt.savefig(title + ".png")
     plt.show()
 
-def linear_regression(matrix):
+def linear_regression(matrix, metadatadict):
     # Add new columns based on metadata from dict
-    matrix['PMH_status'] = matrix.index.map(lambda x: metadata_dict[x][0])
+    matrix['PMH_status'] = matrix.index.map(lambda x: metadatadict[x][0])
     matrix['Target'] = pd.factorize(matrix['PMH_status'])[0]
     coefs = []
     pvals = []
@@ -80,4 +82,29 @@ def linear_regression(matrix):
     padj = sm.stats.multipletests(pvals, 0.05, method="bonferroni")
     print("Corrected alpha:", padj[3])
     results = pd.DataFrame(zip(metabolites, coefs, pvals, padj[1]), columns=["Metabolite", "Fold-change", "P-value", "P-adjust"])
+    return results
+
+def over_representation_analysis(DEM_list, background_list, pathways_df):
+    # analyse each pathway
+    pathways = pathways_df.index.tolist()
+    pvalues = []
+    for pathway in pathways:
+        pathway_compounds = pathways_df.loc[pathway, :].tolist()
+        pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
+        if not pathway_compounds:
+            print("Pathway contains no compounds ")
+            pvalues.append(np.nan)
+        else:
+            # Create 2 by 2 contingency table
+            DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
+            DEM_not_in_pathway = len(np.setdiff1d(pathway_compounds, DEM_list))
+            compound_in_pathway_not_DEM = len(set(background_list) & set(pathway_compounds))
+            compound_not_in_pathway_not_DEM = len(np.setdiff1d(background_list, pathway_compounds))
+            contingency_table = np.array([[compound_in_pathway_not_DEM, DEM_in_pathway], [compound_not_in_pathway_not_DEM, DEM_not_in_pathway]])
+            # Run right tailed Fisher's exact test
+            oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
+            pvalues.append(pvalue)
+    padj = sm.stats.multipletests(pvalues, 0.05, method="bonferroni")
+    results = pd.DataFrame(zip(pathways, pvalues, padj[1]),
+                           columns=["Pathway_ID", "P-value", "P-adjust"])
     return results

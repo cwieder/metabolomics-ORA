@@ -31,7 +31,8 @@ for i in pathway_ids:
     complist = []
     for comp in c_list:
         comp = comp.split("\t")
-        complist.append(comp[1])
+        comp_id = re.search(r"cpd:(.*)", comp[1]).group(1)
+        complist.append(comp_id)
     pathway_compound_mapping[i] = complist
 
 print(pathway_compound_mapping)
