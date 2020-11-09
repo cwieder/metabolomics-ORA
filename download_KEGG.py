@@ -4,6 +4,7 @@ import requests
 import re
 import pandas as pd
 
+print("Beginning KEGG download...")
 # get all pathways
 url = 'http://rest.kegg.jp/list/pathway'
 data = requests.get(url)
@@ -21,6 +22,7 @@ for path in pathways:
 # get compounds for each pathway
 base_url = 'http://rest.kegg.jp/link/cpd/'
 pathway_ids = [*pathway_dict]
+pathway_names = list(pathway_dict.values())
 
 pathway_compound_mapping = dict()
 for i in pathway_ids:
@@ -35,9 +37,12 @@ for i in pathway_ids:
         complist.append(comp_id)
     pathway_compound_mapping[i] = complist
 
-print(pathway_compound_mapping)
+
 df = pd.DataFrame.from_dict(pathway_compound_mapping, orient='index')
+df.insert(0, 'Pathway_name', pathway_names)
+
 df.to_csv("KEGG_reference_pathways_compounds.csv")
+print("Complete!")
 
 
 
