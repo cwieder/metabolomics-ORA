@@ -9,8 +9,10 @@ import scipy.stats as stats
 
 # Get metadata
 md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
-
-metadata_list = list(zip(md_raw['Factor Value[CurrentPMH]'], md_raw['Factor Value[Gender]'], md_raw['Factor Value[AgeAtBloodDraw]']))
+print(md_raw['Factor Value[AgeAtBloodDraw]'].unique())
+metadata_list = list(zip(md_raw['Factor Value[CurrentPMH]'], md_raw['Factor Value[Gender]'],
+                         md_raw['Factor Value[AgeAtBloodDraw]'],
+                         ['Over 75' if val not in ['<=55', '56-60', '61-65', '66-70', '71-75'] else 'Under 75' for val in md_raw['Factor Value[AgeAtBloodDraw]']]))
 metadata_dict = dict(zip(md_raw['Sample Name'].values, metadata_list))
 
 replicate_samples = [k for k, v in metadata_dict.items() if v[0] not in ['Nonuser', 'E-only', 'E+P']]
@@ -24,24 +26,42 @@ mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0)
 def data_processing(raw_matrix, firstrow):
     '''
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
-    :param raw_matrix: raw abundance matrix
+    :param raw_matrix: raw abundance matrix n-samples by m-metabolites
     :param firstrow: First row containing values (integer)
     :param transpose: transpose input matrix
     :return: imputed, log-transformed and standardised matrix
     '''
 
-    processed_matrix = raw_matrix.loc[:, raw_matrix.isnull().mean() < 0.9]
+    processed_matrix = raw_matrix.iloc[firstrow:, :]
+    # processed_matrix['PMH_status'] = processed_matrix.index.map(lambda x: metadata_dict[x][0])
+    # print(processed_matrix)
+    # processed_matrix.to_csv("raw_matrix_labels.csv")
+    # quit()
+    processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.1]
     # Remove metabolites not present in > 90% of samples
     # by indexing df by rows with metabolites present in more than 90% of samples
-    processed_matrix = processed_matrix.iloc[firstrow:, :]
+
     # Remove commas and convert to numeric
-    # processed_matrix = processed_matrix.replace(np.nan, 0)
     processed_matrix = processed_matrix.replace(',','', regex=True)
     processed_matrix = processed_matrix.apply(pd.to_numeric)
     # Missing value imputation using minimum value/2
     imputed_matrix = processed_matrix.replace(np.nan, processed_matrix.min(axis=0)/2)
     # Log2 transformation
+
+    # Skewness calculation
+    # skew_before = [stats.skew(cdata.values) for cname, cdata in imputed_matrix.iteritems()]
+    # skew_high = [(stats.skew(cdata.values), cname) for cname, cdata in imputed_matrix.iteritems() if stats.skew(cdata.values) > 20]
+    # print(skew_high)
+    # plt.hist(skew_before, bins=20)
+    # plt.title("Distribution of skewness coefficients before log2 transformation")
+    # plt.show()
+
     log2_matrix = np.log2(imputed_matrix)
+    # skew_after = [stats.skew(cdata.values) for cname, cdata in log2_matrix.iteritems()]
+    # plt.hist(skew_after, bins=20)
+    # plt.title("Distribution of skewness coefficients after log2 transformation")
+    # plt.show()
+
     # Standardisation by mean centering and scaling to unit variance
     standarised_mat = StandardScaler().fit_transform(log2_matrix)
     log2_matrix.loc[:, :] = standarised_mat
@@ -62,9 +82,10 @@ def plot_PCA(matrix, metadata, title):
     scatter_x = projected[:,0]
     scatter_y = projected[:,1]
     samples = matrix.index.tolist()
-    group = np.array([metadata[i][0] for i in samples])
+    group = np.array([metadata[i][3] for i in samples])
     uniq_sample = np.unique(group)
-    cmap = ['tab:green', 'tab:orange', 'tab:blue']
+    print(uniq_sample)
+    cmap = ['tab:green', 'tab:orange', 'tab:blue', 'red', 'cyan', 'magenta', 'brown', 'yellow']
     cdict = {samp: cmap[num] for num, samp in enumerate(uniq_sample)}
 
     plt.style.use("ggplot")
@@ -109,7 +130,7 @@ def t_tests(matrix):
         group2 = matrix[matrix['Target'] == 1][metabolite].tolist()
         stat, pval = stats.ttest_ind(group1, group2)
         pvalues.append(pval)
-    padj = sm.stats.multipletests(pvalues, 0.05, method="bonferroni")
+    padj = sm.stats.multipletests(pvalues, 0.05, method="fdr_bh")
     results = pd.DataFrame(zip(metabolites, pvalues, padj[1]),
                            columns=["Metabolite", "P-value", "P-adjust"])
     return results
@@ -122,18 +143,17 @@ def hierarchical_clustering(matrix):
 
 def over_representation_analysis(DEM_list, background_list, pathways_df):
     # analyse each pathway
+    pathways_df.dropna(axis=0, how='all', subset=pathways_df.columns.tolist()[1:], inplace=True)
     pathways = pathways_df.index.tolist()
     pathway_names = pathways_df["Pathway_name"].tolist()
     pathways_df.drop('Pathway_name', axis=1, inplace=True)
-    background_list = np.setdiff1d(background_list, DEM_list)
+
     pvalues = []
     for pathway in pathways:
         pathway_compounds = pathways_df.loc[pathway, :].tolist()
         pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
-
         if not pathway_compounds:
-            print("Pathway contains no compounds ")
-            pvalues.append(np.nan)
+            break
         else:
             # Create 2 by 2 contingency table
             DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
@@ -146,37 +166,63 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
             oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
             pvalues.append(pvalue)
 
-    padj = sm.stats.multipletests(pvalues, 0.05, method="bonferroni")
+    padj = sm.stats.multipletests(pvalues, 0.05, method="fdr_bh")
     results = pd.DataFrame(zip(pathways, pathway_names, pvalues, padj[1]),
                            columns=["Pathway_ID", "Pathway_name", "P-value", "P-adjust"])
     return results
 
+def simulate_misidentified_metabolites(matrix, percentage):
+    '''
+    Function to simulate random metbolite misidentification by swapping metabolite names
+    :param matrix: input processed matrix
+    :param percentage: percentage randomisation
+    :return: randomised matrix
+    '''
+
+    # matrix.columns = newcols
+
+    pass
+
+mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
+# matrix['Target'] = pd.factorize(matrix['PMH_status'])[0]
+
+stevens_matrix_proc = data_processing(mat_nonusers_estrogen.T, 8)
 
 
-stevens_matrix_proc = data_processing(mat.T, 8)
-mat_nonusers_estrogen = stevens_matrix_proc.drop((replicate_samples + estrogen_progesterone), axis=0)
+
+# mat_nonusers_estrogen = stevens_matrix_proc.drop((replicate_samples + estrogen_progesterone), axis=0)
 #plot_PCA(mat_nonusers_estrogen, metadata_dict, "non-users vs. estrogen")
 
 # differential_metabolites = linear_regression(mat_nonusers_estrogen)
 
-ttest_res = t_tests(mat_nonusers_estrogen)
-ttest_res.to_csv("DEM_Stevens_ttest.csv")
+ttest_res = t_tests(stevens_matrix_proc)
+# ttest_res.to_csv("DEM_Stevens_ttest.csv")
 
 # DEM = differential_metabolites[differential_metabolites["P-adjust"] < 0.05]["Metabolite"].tolist()
 DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-print(len(DEM))
-#
-# mat_nonusers_estrogen_DEM = mat_nonusers_estrogen[DEM]
-# #plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen \n (differentially expressed metabolites)")
-#
+# with open("DEM_Stevens_ttest.txt", "a") as infile:
+#     for i in DEM:
+#         infile.write(i+"\n")
+print(len(DEM), "Differential metabolites")
+
+mat_nonusers_estrogen_DEM = stevens_matrix_proc[DEM]
+#lot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen \n (differentially expressed metabolites)")
+# plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "age")
+
+
 KEGG_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
 DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
 DEM_KEGG_id = [i for i in DEM_KEGG_id if str(i) != 'nan']
-print(len(DEM_KEGG_id))
+print(len(DEM_KEGG_id), "Differential metabolites mapping to KEGG pathways")
 stevens_background_list = mat['KEGG'].dropna().tolist()
-#
+# with open("background_list_Stevens.txt", "a") as infile:
+#     for i in stevens_background_list:
+#         infile.write(i+"\n")
+
+
 ORA_res = over_representation_analysis(DEM_KEGG_id, stevens_background_list, KEGG_pathways)
-ORA_res.to_csv("ORA_Stevens_ttest.csv")
+print(ORA_res[ORA_res['P-adjust'] < 0.5].count())
+ORA_res.to_csv("ORA_Stevens_ttest_FDR2.csv")
 # differential_metabolites.to_csv("differential_metabolites_nonuser_v_estrogen.csv")
 
 
