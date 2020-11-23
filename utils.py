@@ -11,7 +11,7 @@ import seaborn as sns
 import scipy.stats as stats
 import statsmodels.api as sm
 
-def data_processing(raw_matrix, firstrow):
+def data_processing(raw_matrix, firstrow, firstcol):
     '''
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
     :param raw_matrix: raw abundance matrix with n-samples and m-metabolites
@@ -19,14 +19,16 @@ def data_processing(raw_matrix, firstrow):
     :return: imputed, log-transformed and standardised matrix
     '''
 
-    processed_matrix = raw_matrix.loc[:, raw_matrix.isnull().mean() < 0.9]
+    # Remove commas and convert to numeric
+    processed_matrix = raw_matrix.iloc[firstrow:, firstcol:]
+    processed_matrix = processed_matrix.replace(',', '', regex=True)
+    processed_matrix = processed_matrix.apply(pd.to_numeric)
+    processed_matrix.replace(0, np.nan, inplace=True)
+
+    processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.9]
     # Remove metabolites not present in > 90% of samples
     # by indexing df by rows with metabolites present in more than 90% of samples
-    processed_matrix = processed_matrix.iloc[firstrow:, :]
-    # Remove commas and convert to numeric
-    # processed_matrix = processed_matrix.replace(np.nan, 0)
-    processed_matrix = processed_matrix.replace(',','', regex=True)
-    processed_matrix = processed_matrix.apply(pd.to_numeric)
+
     # Missing value imputation using minimum value/2
     imputed_matrix = processed_matrix.replace(np.nan, processed_matrix.min(axis=0)/2)
     # Log2 transformation
@@ -36,7 +38,7 @@ def data_processing(raw_matrix, firstrow):
     log2_matrix.loc[:, :] = standarised_mat
     return log2_matrix
 
-def plot_PCA(matrix, metadata, title, labelpos):
+def plot_PCA(matrix, metadata, title, n_comp=100):
     '''
     PCA plot
     :param matrix: processed data matrix
@@ -44,24 +46,25 @@ def plot_PCA(matrix, metadata, title, labelpos):
     :return: PCA plot
     '''
 
-    pca = PCA(n_components=100)
+    pca = PCA(n_components=n_comp)
     projected = pca.fit_transform(matrix)
     print(round(sum(list(pca.explained_variance_ratio_))*100, 2), "%")
 
     scatter_x = projected[:,0]
     scatter_y = projected[:,1]
     samples = matrix.index.tolist()
-    group = np.array([metadata[i][labelpos] for i in samples])
+    group = metadata
     uniq_sample = np.unique(group)
     cmap = ['tab:green', 'tab:orange', 'tab:blue']
     cdict = {samp: cmap[num] for num, samp in enumerate(uniq_sample)}
 
+    plt.style.use("ggplot")
     fig, ax = plt.subplots()
     for g in np.unique(group):
         ix = np.where(group == g)
-        ax.scatter(scatter_x[ix], scatter_y[ix], c=cdict[g], label=g, s=10)
+        ax.scatter(scatter_x[ix], scatter_y[ix], c=cdict[g], label=g, s=15)
     ax.legend()
-    plt.style.use("ggplot")
+
     plt.title("PCA for " + title)
     plt.xlabel("Component 1:  " + str(round(pca.explained_variance_ratio_[0]*100, 2)) + "%")
     plt.ylabel("Component 2: " + str(round(pca.explained_variance_ratio_[1]*100, 2)) + "%")
@@ -86,27 +89,56 @@ def linear_regression(matrix, metadatadict):
     results = pd.DataFrame(zip(metabolites, coefs, pvals, padj[1]), columns=["Metabolite", "Fold-change", "P-value", "P-adjust"])
     return results
 
+def t_tests(matrix, classes, multiple_correction_method):
+
+    matrix['Target'] = pd.factorize(classes)[0]
+    metabolites = matrix.columns.tolist()[:-1]
+    pvalues = []
+    for metabolite in metabolites:
+        group1 = matrix[matrix['Target'] == 0][metabolite].tolist()
+        group2 = matrix[matrix['Target'] == 1][metabolite].tolist()
+        stat, pval = stats.ttest_ind(group1, group2)
+        pvalues.append(pval)
+    padj = sm.stats.multipletests(pvalues, 0.05, method=multiple_correction_method)
+    results = pd.DataFrame(zip(metabolites, pvalues, padj[1]),
+                           columns=["Metabolite", "P-value", "P-adjust"])
+    return results
+
 def over_representation_analysis(DEM_list, background_list, pathways_df):
     # analyse each pathway
+    pathways_df.dropna(axis=0, how='all', subset=pathways_df.columns.tolist()[1:], inplace=True)
     pathways = pathways_df.index.tolist()
+
+    pathway_names = pathways_df["Pathway_name"].tolist()
+    pathway_dict = dict(zip(pathways, pathway_names))
+    pathways_df.drop('Pathway_name', axis=1, inplace=True)
+
+    pathways_with_compounds = []
+    pathway_names_with_compounds = []
     pvalues = []
     for pathway in pathways:
         pathway_compounds = pathways_df.loc[pathway, :].tolist()
         pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
-        if not pathway_compounds:
-            print("Pathway contains no compounds ")
-            pvalues.append(np.nan)
+        if not pathway_compounds or len(pathway_compounds) < 3:
+            continue
         else:
-            # Create 2 by 2 contingency table
             DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
-            DEM_not_in_pathway = len(np.setdiff1d(pathway_compounds, DEM_list))
+            DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds))
             compound_in_pathway_not_DEM = len(set(background_list) & set(pathway_compounds))
             compound_not_in_pathway_not_DEM = len(np.setdiff1d(background_list, pathway_compounds))
-            contingency_table = np.array([[compound_in_pathway_not_DEM, DEM_in_pathway], [compound_not_in_pathway_not_DEM, DEM_not_in_pathway]])
-            # Run right tailed Fisher's exact test
-            oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
-            pvalues.append(pvalue)
-    padj = sm.stats.multipletests(pvalues, 0.05, method="bonferroni")
-    results = pd.DataFrame(zip(pathways, pvalues, padj[1]),
-                           columns=["Pathway_ID", "P-value", "P-adjust"])
+
+            if (DEM_in_pathway and compound_in_pathway_not_DEM) == 0:
+                continue
+            else:
+                # Create 2 by 2 contingency table
+                pathways_with_compounds.append(pathway)
+                pathway_names_with_compounds.append(pathway_dict[pathway])
+                contingency_table = np.array([[DEM_in_pathway, compound_in_pathway_not_DEM],
+                                              [DEM_not_in_pathway, compound_not_in_pathway_not_DEM]])
+                # Run right tailed Fisher's exact test
+                oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
+                pvalues.append(pvalue)
+    padj = sm.stats.multipletests(pvalues, 0.05, method="fdr_bh")
+    results = pd.DataFrame(zip(pathways_with_compounds, pathway_names_with_compounds, pvalues, padj[1]),
+                           columns=["Pathway_ID", "Pathway_name", "P-value", "P-adjust"])
     return results

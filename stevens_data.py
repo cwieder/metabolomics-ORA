@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import statsmodels.api as sm
 import seaborn as sns
 import scipy.stats as stats
+import utils
 
 # Get metadata
 md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
@@ -28,7 +29,6 @@ def data_processing(raw_matrix, firstrow):
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
     :param raw_matrix: raw abundance matrix n-samples by m-metabolites
     :param firstrow: First row containing values (integer)
-    :param transpose: transpose input matrix
     :return: imputed, log-transformed and standardised matrix
     '''
 
@@ -37,7 +37,7 @@ def data_processing(raw_matrix, firstrow):
     # print(processed_matrix)
     # processed_matrix.to_csv("raw_matrix_labels.csv")
     # quit()
-    processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.1]
+    processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.9]
     # Remove metabolites not present in > 90% of samples
     # by indexing df by rows with metabolites present in more than 90% of samples
 
@@ -188,10 +188,8 @@ mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), ax
 
 stevens_matrix_proc = data_processing(mat_nonusers_estrogen.T, 8)
 
-
-
 # mat_nonusers_estrogen = stevens_matrix_proc.drop((replicate_samples + estrogen_progesterone), axis=0)
-#plot_PCA(mat_nonusers_estrogen, metadata_dict, "non-users vs. estrogen")
+# plot_PCA(mat_nonusers_estrogen, metadata_dict, "non-users vs. estrogen")
 
 # differential_metabolites = linear_regression(mat_nonusers_estrogen)
 
@@ -199,33 +197,69 @@ ttest_res = t_tests(stevens_matrix_proc)
 # ttest_res.to_csv("DEM_Stevens_ttest.csv")
 
 # DEM = differential_metabolites[differential_metabolites["P-adjust"] < 0.05]["Metabolite"].tolist()
-DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+DEM = ttest_res[ttest_res["P-adjust"] < 0.0000000000000001]["Metabolite"].tolist()
 # with open("DEM_Stevens_ttest.txt", "a") as infile:
 #     for i in DEM:
 #         infile.write(i+"\n")
 print(len(DEM), "Differential metabolites")
 
 mat_nonusers_estrogen_DEM = stevens_matrix_proc[DEM]
-#lot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen \n (differentially expressed metabolites)")
+# plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "Non-user vs estrogen \n (differentially expressed metabolites)")
 # plot_PCA(mat_nonusers_estrogen_DEM, metadata_dict, "age")
 
-
 KEGG_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
+
+# Add back the metadata columns
+mat.columns = mat.columns.str.replace(' ', '')
+metadata_cols = ['KEGG', 'SampleHMDB_ID']
+stevens_matrix_proc_annotated = stevens_matrix_proc.T.join(mat[metadata_cols])
+background_list = stevens_matrix_proc.columns.tolist()
 DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
 DEM_KEGG_id = [i for i in DEM_KEGG_id if str(i) != 'nan']
 print(len(DEM_KEGG_id), "Differential metabolites mapping to KEGG pathways")
-stevens_background_list = mat['KEGG'].dropna().tolist()
+stevens_background_list = stevens_matrix_proc_annotated['KEGG'].dropna().tolist()
+print(len(stevens_matrix_proc_annotated['KEGG'].tolist()), "Metabolites in background list")
+print(len(stevens_background_list), "Background list (in KEGG)")
+
+# Calculate the classes of metabolites not mapped to KEGG
+classes = pd.read_csv("Stevens_metabolite_classes.csv", index_col=1)
+
+mat_classes = stevens_matrix_proc_annotated.merge(classes, left_on="SampleHMDB_ID", right_on="HMDB")
+
+metabolites_not_in_KEGG = mat_classes.loc[mat_classes['KEGG'].isna(), 'SampleHMDB_ID'].tolist()
+metabolites_not_in_KEGG_classes = mat_classes[mat_classes['SampleHMDB_ID'].isin(metabolites_not_in_KEGG)]['HMDB_class']
+# sns.countplot(y=metabolites_not_in_KEGG_classes, data=mat_classes)
+# plt.title("Classes of metabolites not mapped to KEGG pathways")
+# plt.savefig("Stevens_not_in_KEGG_all.png")
+# plt.show()
+# DE_metabolites_not_in_KEGG = mat_classes.loc[mat_classes['KEGG'].isin(DEM_KEGG_id), 'SampleHMDB_ID'].tolist()
+# print(len(DE_metabolites_not_in_KEGG))
+# DE_metabolites_not_in_KEGG_classes = mat_classes[mat_classes['SampleHMDB_ID'].isin(DE_metabolites_not_in_KEGG)]['HMDB_class']
+# sns.countplot(y=DE_metabolites_not_in_KEGG_classes, data=mat_classes)
+# plt.title("Classes of DA metabolites not mapped to KEGG pathways")
+# # plt.savefig("Stevens_not_in_KEGG_all.png")
+# plt.show()
+
 # with open("background_list_Stevens.txt", "a") as infile:
 #     for i in stevens_background_list:
 #         infile.write(i+"\n")
 
 
-ORA_res = over_representation_analysis(DEM_KEGG_id, stevens_background_list, KEGG_pathways)
-print(ORA_res[ORA_res['P-adjust'] < 0.5].count())
-ORA_res.to_csv("ORA_Stevens_ttest_FDR2.csv")
+# ORA_res = over_representation_analysis(DEM_KEGG_id, stevens_background_list, KEGG_pathways)
+# print(ORA_res[ORA_res['P-adjust'] < 0.5].count())
+# ORA_res.to_csv("ORA_Stevens_ttest_FDR2.csv")
 # differential_metabolites.to_csv("differential_metabolites_nonuser_v_estrogen.csv")
+name_map = pd.read_csv("../Stevens/name_map_metaboanalyst.csv", dtype=str)
+Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
+Reactome_human_ids = [i for i in Reactome_pathways.index if i.startswith("R-HSA")]
+Reactome_human = Reactome_pathways[Reactome_pathways.index.isin(Reactome_human_ids)]
+background_list_chEBI = name_map[name_map["Query"].isin(background_list)]['ChEBI'].dropna().tolist()
 
-
+DA_metabolites_chEBI = name_map[name_map["Query"].isin(DEM)]['ChEBI'].dropna().tolist()
+print(len(background_list_chEBI), len(DA_metabolites_chEBI))
+ORA_reactome = utils.over_representation_analysis(DA_metabolites_chEBI, background_list_chEBI, Reactome_human)
+print(len(ORA_reactome[ORA_reactome["P-adjust"] < 0.1]["P-adjust"].tolist()))
+ORA_reactome.to_csv("Stevens_ORA_Reactome.csv")
 # mat_nonusers_e_p = stevens_matrix_proc.drop((replicate_samples + estrogen_only), axis=0)
 # # mat_estrogen_vs_e_p = stevens_matrix_proc.drop((replicate_samples + nonusers), axis=1)
 # mat_all = stevens_matrix_proc.drop(replicate_samples, axis=0)

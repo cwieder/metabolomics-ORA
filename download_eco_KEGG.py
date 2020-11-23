@@ -21,27 +21,26 @@ for path in pathways:
     pathway_dict[pathid] = name
 
 # get compounds for each pathway
-base_url = 'http://rest.kegg.jp/link/cpd/'
+base_url = 'http://rest.kegg.jp/get/'
+#eco00010
+
 pathway_ids = [*pathway_dict]
 pathway_names = list(pathway_dict.values())
-
 pathway_compound_mapping = dict()
 for i in pathway_ids:
-    current_url = base_url + i
-    compounds = requests.get(current_url)
-    c_list = compounds.text.split("\n")
-    c_list = filter(None, c_list)
+    print(i)
+    current_url = base_url + i + "/conf"
+    page = requests.get(current_url)
+    lines = page.text.split("\n")
     complist = []
-    for comp in c_list:
-        comp = comp.split("\t")
-        comp_id = re.search(r"cpd:(.*)", comp[1]).group(1)
-        complist.append(comp_id)
+    for l in lines:
+        if l.startswith("circ"):
+            l = l.split()
+            complist.append(l[4])
     pathway_compound_mapping[i] = complist
-
 
 df = pd.DataFrame.from_dict(pathway_compound_mapping, orient='index')
 df.insert(0, 'Pathway_name', pathway_names)
-
 df.to_csv("KEGG_ecoMG1655_pathways_compounds.csv")
 print("Complete!")
 
