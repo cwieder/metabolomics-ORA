@@ -70,3 +70,64 @@ def stevens_data():
     stevens_background_list = stevens_matrix_proc_annotated['KEGG'].dropna().tolist()
 
     return DEM_KEGG_id, stevens_background_list
+
+def zamboni_data(strain):
+    n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
+    p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
+
+    # remove unannotated
+    n_zscore = n_zscore[n_zscore.index.notnull()]
+    p_zscore = p_zscore[p_zscore.index.notnull()]
+
+    # get all possible annotations for each ion
+    putative_annotations = pd.read_excel("../Zamboni/annotations_EV1.xlsx", sheet_name="Table EV1B")
+
+    neg_putative_annotations = putative_annotations[putative_annotations['Ionization Mode'] == "neg"]
+    pos_putative_annotations = putative_annotations[putative_annotations['Ionization Mode'] == "pos"]
+    annotations_neg = dict.fromkeys(neg_putative_annotations["Ion Index"])
+    annotations_pos = dict.fromkeys(pos_putative_annotations["Ion Index"])
+    for row in neg_putative_annotations.itertuples():
+        annotation_cols = row[4:]
+        ion_index = row[2]
+        annotations = []
+        for i in annotation_cols:
+            if not pd.isna(i):
+                annos = i.split()
+                annotations.append(annos[-2])
+        annotations_neg[ion_index] = annotations
+
+    for row in pos_putative_annotations.itertuples():
+        annotation_cols = row[4:]
+        ion_index = row[2]
+        annotations = []
+        for i in annotation_cols:
+            if not pd.isna(i):
+                annos = i.split()
+                annotations.append(annos[-2])
+        annotations_pos[ion_index] = annotations
+
+    strain_DA_compounds = dict.fromkeys(n_zscore.columns)
+
+    for strain in strain_DA_compounds.keys():
+        cur_col = n_zscore.loc[:, strain]
+        DA_metabolites = []
+        for items in cur_col.iteritems():
+            if items[1] > 6 or items[1] < -6:
+                DA_metabolites.append(annotations_neg[items[0]])
+        DA_KEGG = [j for i in DA_metabolites for j in i]
+        strain_DA_compounds[strain] = DA_KEGG
+
+    for strain in strain_DA_compounds.keys():
+        cur_col = p_zscore.loc[:, strain]
+        DA_metabolites = []
+        for items in cur_col.iteritems():
+            if items[1] > 6 or items[1] < -6:
+                DA_metabolites.append(annotations_pos[items[0]])
+        DA_KEGG = [j for i in DA_metabolites for j in i]
+        strain_DA_compounds[strain] = DA_KEGG
+
+    background_list_all_annotations = list(set(sum(annotations_neg.values(), []) + sum(annotations_pos.values(), [])))
+
+    DEM = list(set(strain_DA_compounds[strain]))
+
+    return DEM, background_list_all_annotations
