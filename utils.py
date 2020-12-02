@@ -10,6 +10,8 @@ import numpy as np
 import scipy.stats as stats
 import statsmodels.api as sm
 
+pd.options.mode.chained_assignment = None  # default='warn'
+
 def data_processing(raw_matrix, firstrow, firstcol):
     '''
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
@@ -108,20 +110,19 @@ def t_tests(matrix, classes, multiple_correction_method):
 
 def over_representation_analysis(DEM_list, background_list, pathways_df):
     # analyse each pathway
-    pathways_df.dropna(axis=0, how='all', subset=pathways_df.columns.tolist()[1:], inplace=True)
+    KEGG_pathways = pathways_df.dropna(axis=0, how='all', subset=pathways_df.columns.tolist()[1:])
 
-    pathways = pathways_df.index.tolist()
-
-    pathway_names = pathways_df["Pathway_name"].tolist()
+    pathways = KEGG_pathways.index.tolist()
+    pathway_names = KEGG_pathways["Pathway_name"].tolist()
     pathway_dict = dict(zip(pathways, pathway_names))
-    pathways_df.drop('Pathway_name', axis=1, inplace=True)
+    KEGG_pathways.drop('Pathway_name', axis=1, inplace=True)
 
     pathways_with_compounds = []
     pathway_names_with_compounds = []
     pvalues = []
     pathway_ratio = []
     for pathway in pathways:
-        pathway_compounds = pathways_df.loc[pathway, :].tolist()
+        pathway_compounds = KEGG_pathways.loc[pathway, :].tolist()
         pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
         if not pathway_compounds or len(pathway_compounds) < 3:
             continue
@@ -165,7 +166,8 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     :param percentage: percentage reduction of list desired
     :return: reduced background list
     '''
-    list_size = len(background_list)*(100-percentage)
+    list_size = int(len(background_list)*((100-percentage)/100))
+    print(list_size)
 
     p_vals = []
     q_vals = []
@@ -179,5 +181,5 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     sd_p_signficant_paths = np.std(p_vals)
     sd_q_signficant_paths = np.std(q_vals)
 
-    return mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 

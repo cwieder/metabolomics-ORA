@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import utils
 
+pd.options.mode.chained_assignment = None  # default='warn'
+
 n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
 p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
 
@@ -68,24 +70,32 @@ for strain in strain_DA_compounds.keys():
 
 background_list_all_annotations = list(set(sum(annotations_neg.values(), []) + sum(annotations_pos.values(), [])))
 print(len(background_list_all_annotations))
+KEGG_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
+#
+# n_significant = []
+# for strain in strain_DA_compounds.keys():
+#     DA_met_unique = list(set(strain_DA_compounds[strain]))
+#     if DA_met_unique:
+#         ora_res = utils.over_representation_analysis(DA_met_unique, background_list_all_annotations, KEGG_pathways)
+#         if len(ora_res[ora_res["P-adjust"] < 0.05]["P-adjust"].tolist()) > 5:
+#             print(strain, len(DA_met_unique), len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+#         n_significant.append(len(ora_res[ora_res["P-adjust"] < 0.05]["P-adjust"].tolist()))
+#     else:
+#         continue
+# print(n_significant)
 
-n_significant = []
-for strain in strain_DA_compounds.keys():
-    DA_met_unique = list(set(strain_DA_compounds[strain]))
-    if DA_met_unique:
-        KEGG_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
 
-        ora_res = utils.over_representation_analysis(DA_met_unique, background_list_all_annotations, KEGG_pathways)
-        if len(ora_res[ora_res["P-adjust"] < 0.05]["P-adjust"].tolist()) > 5:
-            print(strain, len(DA_met_unique), len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
-        n_significant.append(len(ora_res[ora_res["P-adjust"] < 0.05]["P-adjust"].tolist()))
-    else:
-        continue
-print(n_significant)
+print(len(list(set(strain_DA_compounds["arcB"]))))
+ora_res = utils.over_representation_analysis(list(set(strain_DA_compounds["arcB"])), background_list_all_annotations, KEGG_pathways)
 
-
-# print(len(list(set(strain_DA_compounds["glcD"]))))
-# KEGG_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
-# ora_res = utils.over_representation_analysis(list(set(strain_DA_compounds["creB"])), background_list_all_annotations, KEGG_pathways)
 # ora_res.to_csv("../Zamboni/creB_ORA.csv", index=False)
+print(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+print(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+# ora_res.to_csv("../Yamada/Yamada_ORA_human.csv", index=False)
 
+all_KEGG_compounds = list(set([x for x in KEGG_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
+print(len(all_KEGG_compounds))
+
+ora_whole_KEGG_bg = utils.over_representation_analysis(list(set(strain_DA_compounds["arcB"])), all_KEGG_compounds, KEGG_pathways)
+print(len(ora_whole_KEGG_bg[ora_whole_KEGG_bg["P-value"] < 0.1]["P-value"].tolist()))
+print(len(ora_whole_KEGG_bg[ora_whole_KEGG_bg["P-adjust"] < 0.1]["P-adjust"].tolist()))
