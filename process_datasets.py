@@ -71,7 +71,7 @@ def stevens_data():
 
     return DEM_KEGG_id, stevens_background_list
 
-def zamboni_data(strain):
+def zamboni_data(knockout):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
     p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
 
@@ -128,6 +128,6 @@ def zamboni_data(strain):
 
     background_list_all_annotations = list(set(sum(annotations_neg.values(), []) + sum(annotations_pos.values(), [])))
 
-    DEM = list(set(strain_DA_compounds[strain]))
+    DEM = list(set(strain_DA_compounds[knockout]))
 
     return DEM, background_list_all_annotations

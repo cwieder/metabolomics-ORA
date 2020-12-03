@@ -180,6 +180,5 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     mean_q_signficant_paths = np.mean(q_vals)
     sd_p_signficant_paths = np.std(p_vals)
     sd_q_signficant_paths = np.std(q_vals)
-
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 
