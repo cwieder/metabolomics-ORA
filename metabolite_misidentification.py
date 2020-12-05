@@ -37,7 +37,7 @@ for d in datasets.keys():
         res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2])
         results_lists.append([d, i] + res)
 
-res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage reduction", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
+res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
 res_df.to_csv("Metabolite_misidentification_simulation.csv")
 
 simulation_res = res_df

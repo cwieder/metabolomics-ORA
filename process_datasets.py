@@ -54,7 +54,7 @@ def brown_data():
     KEGG_dict = dict(zip(mat.index.tolist(), mat['KEGG'].tolist()))
     mat_KEGG = mat_proc.rename(columns=KEGG_dict)
     mat_KEGG = mat_KEGG.loc[:, mat_KEGG.columns.notnull()]
-
+    mat_KEGG = mat_KEGG.loc[:, ~mat_KEGG.columns.duplicated()]
     return DEM_KEGG_id, background_KEGG, mat_KEGG
 
 def stevens_data():
@@ -74,6 +74,7 @@ def stevens_data():
     mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0)
     mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
     stevens_matrix_proc = utils.data_processing(mat_nonusers_estrogen.T, 8, 0)
+    stevens_matrix_proc = stevens_matrix_proc.loc[:,~stevens_matrix_proc.columns.duplicated()]
     stevens_matrix_proc["Group"] = stevens_matrix_proc.index.map(sample_status_dict)
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
@@ -83,15 +84,16 @@ def stevens_data():
     metadata_cols = ['KEGG', 'SampleHMDB_ID']
     stevens_matrix_proc_annotated = stevens_matrix_proc.T.join(mat[metadata_cols])
     background_list = stevens_matrix_proc.columns.tolist()
+
     DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
     DEM_KEGG_id = [i for i in DEM_KEGG_id if str(i) != 'nan']
-    stevens_background_list = stevens_matrix_proc_annotated['KEGG'].dropna().tolist()
+    stevens_background_list = list(set(stevens_matrix_proc_annotated['KEGG'].dropna().tolist()))
 
     # Return KEGG matrix
     KEGG_dict = dict(zip(mat.index.tolist(), mat['KEGG'].tolist()))
     mat_KEGG = stevens_matrix_proc.rename(columns=KEGG_dict)
     mat_KEGG = mat_KEGG.loc[:, mat_KEGG.columns.notnull()]
-
+    mat_KEGG = mat_KEGG.loc[:, ~mat_KEGG.columns.duplicated()]
     return DEM_KEGG_id, stevens_background_list, mat_KEGG
 
 def zamboni_data(knockout):
