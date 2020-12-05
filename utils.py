@@ -182,3 +182,37 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     sd_q_signficant_paths = np.std(q_vals)
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 
+def misidentify_metabolites(percentage, processed_matrix, organism_compounds, background_list, pathway_df):
+    '''
+    Randomly swaps a percentage of KEGG compounds and then performs ORA
+    :param percentage: percentage of compounds to be misidentified
+    :param processed_matrix: processed abundance matrix with KEGG compounds as columns
+    :param organism_compounds: all KEGG compounds for the organism
+    :param background_list: background list for dataset
+    :param pathway_df: list of KEGG pathways
+    :return: mean number of p-values significant at P <0.1, Q-values, and standard deviation
+    '''
+
+    mat_unannotated = processed_matrix.iloc[:, :-1]
+    metabolites = mat_unannotated.columns.tolist()
+    n_misidentified = int(len(metabolites)*(percentage/100))
+    p_vals = []
+    q_vals = []
+    for i in range(0, 10):
+        # Randomly replace n compounds
+        metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
+        replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
+        replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
+        misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
+
+        # Perform t-tests and ORA
+        ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
+        DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+        ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    mean_p_signficant_paths = np.mean(p_vals)
+    mean_q_signficant_paths = np.mean(q_vals)
+    sd_p_signficant_paths = np.std(p_vals)
+    sd_q_signficant_paths = np.std(q_vals)
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]

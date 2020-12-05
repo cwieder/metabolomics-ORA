@@ -6,20 +6,33 @@ import utils
 
 def yamada_data():
     data = pd.read_excel("../Yamada/Yamada.xlsx", index_col=0, header=0).T
-    data.columns = [col[0:6] for col in data.columns]
-    CRC_or_healthy = ["Healthy" if i in ["Healthy"] else "CRC" if i in ["Stage_I_II", "Stage_III_IV"] else "Null" for i in data["Group"]]
-    # BMI = ["Healthy" if i < 24 else "Overweight" for i in data["BMI"]]
-    # age = ["Over60" if i > 60 else "Under60" for i in data["Age"]]
-    data.insert(1, "binary", CRC_or_healthy)
+    data = data.rename(columns={'Group': 'disease'})
+    sample_disease_dict = dict(zip(data.index, data['disease']))
+    data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
+    remove_not_in_KEGG = [i for i in data.columns[4:] if i[0] != "C"]
+    data = data.drop(remove_not_in_KEGG, axis=1)
+    # TODO: Try and map these compounds
+    CRC_or_healthy_dict = dict.fromkeys(data.index.tolist())
+    for k, v in sample_disease_dict.items():
+        if v in ['Healthy']:
+            CRC_or_healthy_dict[k] = "Healthy"
+        elif v in ["Stage_I_II", "Stage_III_IV"]:
+            CRC_or_healthy_dict[k] = "CRC"
+        else:
+            CRC_or_healthy_dict[k] = "Null"
+    CRC_or_healthy = ["Healthy" if i in ["Healthy"] else "CRC" if i in ["Stage_I_II", "Stage_III_IV"] else "Null" for i in data["disease"]]
+
+    data.insert(1, "Group", CRC_or_healthy)
 
     data = data.iloc[:, ~data.columns.duplicated()]
-    df = data[data.binary != "Null"]
+    df = data[data.disease != "Null"]
     data_proc = utils.data_processing(df, 0, 5)
-    ttest_res = utils.t_tests(data_proc, data[data.binary != "Null"]["binary"], "fdr_bh")
+    data_proc["Group"] = data_proc.index.map(CRC_or_healthy_dict)
+    data_proc = data_proc[data_proc.Group != "Null"]
+    ttest_res = utils.t_tests(data_proc.iloc[:, :-1], data_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-
-    background = data_proc.columns.tolist()
-    return DEM, background
+    background = data_proc.iloc[:, :-1].columns.tolist()
+    return DEM, background, data_proc
 
 def brown_data():
     mat = pd.read_excel("../Brown_mouse_diet/abundance.xlsx", index_col=0, header=1).T
@@ -34,10 +47,15 @@ def brown_data():
     ttest_res = utils.t_tests(mat_proc.iloc[:, :-1], mat_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     mat = mat.T
-
     DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
-    background_KEGG = mat['KEGG'].tolist()
-    return DEM_KEGG_id, background_KEGG
+    background_KEGG = mat['KEGG'].dropna().tolist()
+
+    # Return KEGG matrix
+    KEGG_dict = dict(zip(mat.index.tolist(), mat['KEGG'].tolist()))
+    mat_KEGG = mat_proc.rename(columns=KEGG_dict)
+    mat_KEGG = mat_KEGG.loc[:, mat_KEGG.columns.notnull()]
+
+    return DEM_KEGG_id, background_KEGG, mat_KEGG
 
 def stevens_data():
     md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
@@ -69,7 +87,12 @@ def stevens_data():
     DEM_KEGG_id = [i for i in DEM_KEGG_id if str(i) != 'nan']
     stevens_background_list = stevens_matrix_proc_annotated['KEGG'].dropna().tolist()
 
-    return DEM_KEGG_id, stevens_background_list
+    # Return KEGG matrix
+    KEGG_dict = dict(zip(mat.index.tolist(), mat['KEGG'].tolist()))
+    mat_KEGG = stevens_matrix_proc.rename(columns=KEGG_dict)
+    mat_KEGG = mat_KEGG.loc[:, mat_KEGG.columns.notnull()]
+
+    return DEM_KEGG_id, stevens_background_list, mat_KEGG
 
 def zamboni_data(knockout):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)

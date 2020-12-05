@@ -7,11 +7,11 @@ import seaborn as sns
 import numpy as np
 
 # Import the relevant datasets
-DEM_yamada, background_yamada = process_datasets.yamada_data()
-DEM_stevens, background_stevens = process_datasets.stevens_data()
-DEM_brown, background_brown = process_datasets.brown_data()
-DEM_yfgM, background_yfgM = process_datasets.zamboni_data("yfgM")
-DEM_dcuS, background_dcuS = process_datasets.zamboni_data("dcuS")
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
 
 # Import pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
