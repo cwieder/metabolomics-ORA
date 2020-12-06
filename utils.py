@@ -198,7 +198,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     n_misidentified = int(len(metabolites)*(percentage/100))
     p_vals = []
     q_vals = []
-    for i in range(0, 10):
+    for i in range(0, 100):
         # Randomly replace n compounds
         metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
         replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
