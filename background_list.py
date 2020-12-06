@@ -75,18 +75,18 @@ def plot_grouped_stacked_bar():
 def reduce_background_set():
     percentage_reductions = [0, 1, 5, 10, 20, 50, 70]
 
-    results_lists = []
-    for d in datasets.keys():
-        print(d)
-        for i in percentage_reductions:
-            res = utils.reduce_background_list_ora(datasets[d][1], i, datasets[d][0], datasets[d][2])
-            results_lists.append([d, i] + res)
+    # results_lists = []
+    # for d in datasets.keys():
+    #     print(d)
+    #     for i in percentage_reductions:
+    #         res = utils.reduce_background_list_ora(datasets[d][1], i, datasets[d][0], datasets[d][2])
+    #         results_lists.append([d, i] + res)
+    #
+    # res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage reduction", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
+    # res_df.to_csv("Background_reduction_simulation.csv")
 
-    res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage reduction", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
-    res_df.to_csv("Background_reduction_simulation.csv")
-
-    # simulation_res = pd.read_csv("Background_reduction_simulation.csv")
-    simulation_res = res_df
+    simulation_res = pd.read_csv("Background_reduction_simulation.csv")
+    # simulation_res = res_df
     print(simulation_res.head)
     plt.figure()
     plt.style.use("seaborn")
@@ -94,7 +94,7 @@ def reduce_background_set():
         plt.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
                      simulation_res[simulation_res["Dataset"] == i]['n_p_less_0.1'],
                      yerr=simulation_res[simulation_res["Dataset"] == i]['p_std'],
-                     label=i, fmt='o', linestyle="solid", capsize=20, markersize=5)
+                     label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
     plt.title("Number of pathways with P-values < 0.1 in \n response to varying background list size", fontsize=14)
     plt.legend()
     plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
@@ -102,4 +102,5 @@ def reduce_background_set():
     plt.savefig("background_list_reduction.png", dpi=300)
     plt.show()
 
+reduce_background_set()
 # Mind the gap set
