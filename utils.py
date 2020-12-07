@@ -99,6 +99,11 @@ def t_tests(matrix, classes, multiple_correction_method):
 
     pvalues = []
     for metabolite in metabolites:
+        # print(matrix[matrix['Target'] == 0][metabolite].tolist())
+        if isinstance(matrix[matrix['Target'] == 0][metabolite], pd.DataFrame):
+            print(metabolite)
+            print("duplicate compounds found")
+            print(matrix[matrix['Target'] == 0][metabolite])
         group1 = matrix[matrix['Target'] == 0][metabolite].tolist()
         group2 = matrix[matrix['Target'] == 1][metabolite].tolist()
         stat, pval = stats.ttest_ind(group1, group2)
@@ -206,6 +211,59 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
         replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
         misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
 
+        # Perform t-tests and ORA
+        ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
+        DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+        ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    mean_p_signficant_paths = np.mean(p_vals)
+    mean_q_signficant_paths = np.mean(q_vals)
+    sd_p_signficant_paths = np.std(p_vals)
+    sd_q_signficant_paths = np.std(q_vals)
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+
+def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, all_compound_masses, organism_bg):
+    '''
+    Randomly swaps a percentage of KEGG compounds and then performs ORA
+    :param percentage: percentage of compounds to be misidentified
+    :param processed_matrix: processed abundance matrix with KEGG compounds as columns
+    :param pathway_df: list of KEGG pathways
+    :param all_compound_masses: list of all compounds and masses
+    :param organism_bg:organism specific compounds
+    :return: mean number of p-values significant at P <0.1, Q-values, and standard deviation
+    '''
+
+    KEGG_compounds_masses_organism = all_compound_masses[~all_compound_masses.index.isin(organism_bg)]
+    mat_unannotated = processed_matrix.iloc[:, :-1]
+    metabolites = mat_unannotated.columns.tolist()
+
+    # %of compounds without a mass in KEGG
+    # in_KEGG = all_compound_masses.index.tolist()
+    # print((len(np.setdiff1d(organism_bg, in_KEGG))/len(organism_bg))*100)
+
+    n_misidentified = int(len(metabolites)*(percentage/100))
+    p_vals = []
+    q_vals = []
+    for i in range(0, 100):
+        metabolites_to_replace = []
+        while len(metabolites_to_replace) < n_misidentified:
+            replacement_cpd = np.random.choice(metabolites, 1, replace=False)[0]
+            if replacement_cpd in all_compound_masses.index:
+                # only replace metabolites with a mass
+                metabolites_to_replace.append(replacement_cpd)
+
+        replacement_dict = dict.fromkeys(metabolites_to_replace, "")
+        for compound in metabolites_to_replace:
+            compound_mass = all_compound_masses[all_compound_masses.index == compound]['molecular_weight'].values[0]
+            # Replace with compounds within += 5 Da
+            mass_window = (compound_mass-5, compound_mass+5)
+            # Only replace with organism-specific compounds
+            replacement_compounds = KEGG_compounds_masses_organism[KEGG_compounds_masses_organism['molecular_weight'].between(mass_window[0], mass_window[1])].index.tolist()
+            random_replacement = np.random.choice(np.setdiff1d(replacement_compounds, [metabolites + list(replacement_dict.values())]), 1)
+            # Ensure compounds not duplicated
+            replacement_dict[compound] = random_replacement[0]
+        misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
         # Perform t-tests and ORA
         ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
         DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()

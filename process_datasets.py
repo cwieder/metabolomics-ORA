@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import utils
+import re
 
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
@@ -9,9 +10,16 @@ def yamada_data():
     data = data.rename(columns={'Group': 'disease'})
     sample_disease_dict = dict(zip(data.index, data['disease']))
     data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
-    remove_not_in_KEGG = [i for i in data.columns[4:] if i[0] != "C"]
-    data = data.drop(remove_not_in_KEGG, axis=1)
+
+    removecols = []
+    for i in data.columns.tolist():
+        matchObj = re.search("^[C]\d{5}$", i)
+        if not matchObj:
+            removecols.append(i)
+
+    data = data.drop(removecols[4:], axis=1)
     # TODO: Try and map these compounds
+
     CRC_or_healthy_dict = dict.fromkeys(data.index.tolist())
     for k, v in sample_disease_dict.items():
         if v in ['Healthy']:
@@ -25,6 +33,7 @@ def yamada_data():
     data.insert(1, "Group", CRC_or_healthy)
 
     data = data.iloc[:, ~data.columns.duplicated()]
+    df = data[data.disease != "Null"]
     df = data[data.disease != "Null"]
     data_proc = utils.data_processing(df, 0, 5)
     data_proc["Group"] = data_proc.index.map(CRC_or_healthy_dict)

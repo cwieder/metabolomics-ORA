@@ -34,7 +34,7 @@ def random_misidentification():
     for d in datasets.keys():
         print(d)
         for i in percentage_misidentifications:
-            res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2])
+            res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][1])
             results_lists.append([d, i] + res)
 
     res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
@@ -63,50 +63,35 @@ def random_misidentification():
 KEGG_compounds_masses = pd.read_csv("KEGG_compounds_exact_mass.csv", index_col=0)
 # Filter for human compounds only
 # print(len(np.setdiff1d(all_KEGG_human_bg, KEGG_compounds_masses.index.tolist())))
-KEGG_compounds_masses_human = KEGG_compounds_masses[~KEGG_compounds_masses.index.isin(all_KEGG_human_bg)]
 
-def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, compounds_masses):
-    '''
-    Randomly swaps a percentage of KEGG compounds and then performs ORA
-    :param percentage: percentage of compounds to be misidentified
-    :param processed_matrix: processed abundance matrix with KEGG compounds as columns
-    :param organism_compounds: all KEGG compounds for the organism
-    :param background_list: background list for dataset
-    :param pathway_df: list of KEGG pathways
-    :return: mean number of p-values significant at P <0.1, Q-values, and standard deviation
-    '''
+def misidentification_mass_plot():
+    results_lists = []
+    for d in datasets.keys():
+        print(d)
+        for i in percentage_misidentifications:
+            print(i)
+            res = utils.misidentify_metabolites_by_mass(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses, datasets[d][1])
+            results_lists.append([d, i] + res)
 
-    mat_unannotated = processed_matrix.iloc[:, :-1]
-    metabolites = mat_unannotated.columns.tolist()
+    res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
+    res_df.to_csv("Metabolite_misidentification_by_mass_simulation.csv")
 
-    n_misidentified = int(len(metabolites)*(percentage/100))
-    p_vals = []
-    q_vals = []
-    for i in range(0, 1):
-        # Replace with compounds within += 10 Da
-        metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
-        replacement_dict = dict.fromkeys(metabolites_to_replace, "")
-        for compound in metabolites_to_replace:
-            compound_mass = KEGG_compounds_masses[KEGG_compounds_masses.index == compound]['molecular_weight'].values[0]
-            mass_window = (compound_mass-5, compound_mass+5)
-            # Only replace with organism-specific compounds
-            replacement_compounds = compounds_masses[compounds_masses['molecular_weight'].between(mass_window[0], mass_window[1])].index
-            random_replacement = np.random.choice(np.setdiff1d(replacement_compounds, [compound]), 1)
-            replacement_dict[compound] = random_replacement[0]
-        misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
+    simulation_res = res_df
+    print(simulation_res.head)
+    plt.figure()
+    plt.style.use("seaborn")
+    for i in datasets.keys():
+        plt.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage misidentification'],
+                     simulation_res[simulation_res["Dataset"] == i]['n_p_less_0.1'],
+                     yerr=simulation_res[simulation_res["Dataset"] == i]['p_std'],
+                     label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
+    plt.title("Number of pathways with P-values < 0.1 in response to \n varying levels of metabolite misidentification", fontsize=14)
+    plt.legend()
+    plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
+    plt.xlabel("Percentage of metabolites misidentified", fontsize=14)
+    plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
+    plt.show()
 
-        # Perform t-tests and ORA
-        ttest_res = utils.t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
-        DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-        ora_res = utils.over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
-        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
-        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
-    mean_p_signficant_paths = np.mean(p_vals)
-    mean_q_signficant_paths = np.mean(q_vals)
-    sd_p_signficant_paths = np.std(p_vals)
-    sd_q_signficant_paths = np.std(q_vals)
-    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+misidentification_mass_plot()
 
-
-print(misidentify_metabolites_by_mass(1, mat_yamada, KEGG_human_pathways, KEGG_compounds_masses_human))
 
