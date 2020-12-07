@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import time
 #
 # # Import the relevant datasets
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
@@ -36,6 +37,7 @@ def random_misidentification():
         for i in percentage_misidentifications:
             res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][1])
             results_lists.append([d, i] + res)
+            time.sleep(1)
 
     res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
     res_df.to_csv("Metabolite_misidentification_simulation.csv")
