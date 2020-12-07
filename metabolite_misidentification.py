@@ -61,8 +61,11 @@ def random_misidentification():
 # Replace with a compound in a similar mass window
 
 KEGG_compounds_masses = pd.read_csv("KEGG_compounds_exact_mass.csv", index_col=0)
-print(KEGG_compounds_masses.head)
-def misidentify_metabolites_by_mass(percentage, processed_matrix, organism_compounds, background_list, pathway_df):
+# Filter for human compounds only
+# print(len(np.setdiff1d(all_KEGG_human_bg, KEGG_compounds_masses.index.tolist())))
+KEGG_compounds_masses_human = KEGG_compounds_masses[~KEGG_compounds_masses.index.isin(all_KEGG_human_bg)]
+
+def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, compounds_masses):
     '''
     Randomly swaps a percentage of KEGG compounds and then performs ORA
     :param percentage: percentage of compounds to be misidentified
@@ -75,6 +78,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, organism_compo
 
     mat_unannotated = processed_matrix.iloc[:, :-1]
     metabolites = mat_unannotated.columns.tolist()
+
     n_misidentified = int(len(metabolites)*(percentage/100))
     p_vals = []
     q_vals = []
@@ -83,13 +87,12 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, organism_compo
         metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
         replacement_dict = dict.fromkeys(metabolites_to_replace, "")
         for compound in metabolites_to_replace:
-            compound_mass = KEGG_compounds_masses[KEGG_compounds_masses.index == compound]['molecular_weight']
+            compound_mass = KEGG_compounds_masses[KEGG_compounds_masses.index == compound]['molecular_weight'].values[0]
             mass_window = (compound_mass-5, compound_mass+5)
-            replacement_compounds = KEGG_compounds_masses['molecular_weight'].between(mass_window[0], mass_window[1])
+            # Only replace with organism-specific compounds
+            replacement_compounds = compounds_masses[compounds_masses['molecular_weight'].between(mass_window[0], mass_window[1])].index
             random_replacement = np.random.choice(np.setdiff1d(replacement_compounds, [compound]), 1)
-            replacement_dict[compound] = random_replacement
-
-        # replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
+            replacement_dict[compound] = random_replacement[0]
         misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
 
         # Perform t-tests and ORA
@@ -103,3 +106,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, organism_compo
     sd_p_signficant_paths = np.std(p_vals)
     sd_q_signficant_paths = np.std(q_vals)
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+
+
+print(misidentify_metabolites_by_mass(1, mat_yamada, KEGG_human_pathways, KEGG_compounds_masses_human))
+

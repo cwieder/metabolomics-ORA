@@ -49,12 +49,17 @@ md_raw = pd.read_csv("../Socie/s_MTBLS204.txt", sep="\t")
 metadata = dict(zip(md_raw["Source Name"], md_raw["Factor Value[Class]"]))
 
 socie_mat = pd.read_excel("../Socie/abundance_mat.xlsx", index_col=0)
+# remove_cols = [i if metadata[i] not in ["acute GVHD", "no GVHD"] else None for i in socie_mat.columns[6:]]
+# remove_cols = [i for i in remove_cols if i != None]
+# socie_mat = socie_mat.drop(remove_cols, axis=1)
+
 socie_mat_proc = utils.data_processing(socie_mat.T, 6, 1)
 
-socie_mat["Group"] = socie_mat.iloc[:,1].map(metadata)
-plot_PCA(socie_mat_proc, metadata, "Donor vs Recipient", n_comp=86)
-socie_mat_proc["Group"] = socie_mat_proc.index.map(metadata)
+# socie_mat["Group"] = socie_mat.iloc[:,1].map(metadata)
+# print(socie_mat["Group"])
 
+# plot_PCA(socie_mat_proc, metadata, "Donor vs Recipient", n_comp=10)
+socie_mat_proc["Group"] = socie_mat_proc.index.map(metadata)
 
 ttest_res = utils.t_tests(socie_mat_proc.iloc[:,:-1], socie_mat_proc["Group"], "fdr_bh")
 # ttest_res.to_csv("DEM_Stevens_ttest.csv")
@@ -67,8 +72,7 @@ print(DEM)
 #         infile.write(i+"\n")
 print(len(DEM), "Differential metabolites")
 
-KEGG_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
-print(KEGG_pathways.head)
+KEGG_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
 socie_mat.columns = socie_mat.columns.str.replace(' ', '')
 metadata_cols = ['KEGG', 'GroupHMDB_ID']
 socie_mat_proc_annotated = socie_mat_proc.T.join(socie_mat[metadata_cols])
@@ -83,5 +87,6 @@ print(len(background_list), "background in KEGG")
 print(socie_mat_proc.shape)
 
 ORA_res = utils.over_representation_analysis(DEM_KEGG_id, background_list, KEGG_pathways)
-print(ORA_res[ORA_res['P-adjust'] < 0.5].count())
-ORA_res.to_csv("ORA_Socie_ttest_FDR.csv")
+print(ORA_res[ORA_res['P-adjust'] < 0.2].count())
+print(ORA_res)
+ORA_res.to_csv("../Socie/ORA_Socie_ttest_FDR.csv")

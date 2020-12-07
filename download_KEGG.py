@@ -6,7 +6,7 @@ import pandas as pd
 
 print("Beginning KEGG download...")
 # get all pathways
-url = 'http://rest.kegg.jp/list/pathway/eco'
+url = 'http://rest.kegg.jp/list/pathway/hsa'
 # change organism name
 data = requests.get(url)
 pathways = data.text
@@ -42,7 +42,7 @@ for i in pathway_ids:
 df = pd.DataFrame.from_dict(pathway_compound_mapping, orient='index')
 df.insert(0, 'Pathway_name', pathway_names)
 
-df.to_csv("KEGG_ecoMG1655_pathways_compounds.csv")
+df.to_csv("KEGG_human_pathways_compounds.csv")
 print("Complete!")
 
 

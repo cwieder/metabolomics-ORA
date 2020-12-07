@@ -202,6 +202,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
         # Randomly replace n compounds
         metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
         replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
+        # TODO: CHECK THAT ORGANISM COMPOUNDS CONTAIN THE RIGHT THINGS e.g. glycans? drugs? should be included?
         replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
         misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
 

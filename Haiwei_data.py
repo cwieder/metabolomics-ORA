@@ -16,7 +16,7 @@ mat_proc = utils.data_processing(mat, 0, 1)
 classes = mat["Groups"].to_dict()
 ttest_res = utils.t_tests(mat_proc, mat["Groups"], "fdr_bh")
 
-KEGG_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
 
 Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
 Reactome_human_ids = [i for i in Reactome_pathways.index if i.startswith("R-HSA")]
@@ -27,8 +27,8 @@ name_map = pd.read_csv("../Haiwei/name_map.csv", dtype=str)
 background_list = mat_proc.columns.tolist()
 background_list_chEBI = name_map[name_map["Query"].isin(background_list)]['ChEBI'].dropna().tolist()
 background_list_KEGG = name_map[name_map["Query"].isin(background_list)]['KEGG'].dropna().tolist()
-
-DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+print(len(background_list_KEGG))
+DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.01]["Metabolite"].tolist()
 print(DA_metabolites)
 DA_metabolites_chEBI = name_map[name_map["Query"].isin(DA_metabolites)]['ChEBI'].dropna().tolist()
 DA_metabolites_kegg = name_map[name_map["Query"].isin(DA_metabolites)]['KEGG'].dropna().tolist()

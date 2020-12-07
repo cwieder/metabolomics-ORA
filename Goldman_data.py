@@ -28,13 +28,12 @@ t_test_res = utils.t_tests(goldman_mat_proc, goldman_mat["Healthy donor sample o
 t_test_res.to_csv("Goldman_ttest_res.csv")
 
 
-KEGG_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
 
 
 Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
 Reactome_human_ids = [i for i in Reactome_pathways.index if i.startswith("R-HSA")]
 Reactome_human = Reactome_pathways[Reactome_pathways.index.isin(Reactome_human_ids)]
-print(Reactome_human)
 
 name_map = pd.read_csv("../Goldman_data/name_map.csv", dtype=str)
 background_list = goldman_mat_proc.columns.tolist()
@@ -42,7 +41,7 @@ background_list_KEGG = name_map[name_map["Query"].isin(background_list)]['KEGG']
 background_list_chEBI = name_map[name_map["Query"].isin(background_list)]['ChEBI'].dropna().tolist()
 
 print(len(background_list_KEGG), "in background list KEGG")
-DA_metabolites = t_test_res[t_test_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+DA_metabolites = t_test_res[t_test_res["P-adjust"] < 0.0000000000000001]["Metabolite"].tolist()
 
 name_map[name_map["Query"].isin(background_list)]['KEGG'].dropna().to_csv("Goldman_background_KEGG.csv", index=None)
 # t_test_res[t_test_res["P-adjust"] < 0.05]["Metabolite"].to_csv("Goldman_DA_names.csv", index=None)
@@ -61,7 +60,9 @@ print(len(DA_metabolites_KEGG), "DA in KEGG")
 # with open('KEGG_compounds.pickle', 'rb') as handle:
 #     all_KEGG_compounds = pickle.load(handle)
 
-# ORA_res = utils.over_representation_analysis(DA_metabolites_KEGG, background_list_KEGG, KEGG_pathways)
+ORA_res = utils.over_representation_analysis(DA_metabolites_KEGG, background_list_KEGG, KEGG_pathways)
+ORA_res.to_csv("../Goldman_data/goldman_ORA.csv")
+
 ORA_reactome = utils.over_representation_analysis(DA_metabolites_chEBI, background_list_chEBI, Reactome_human)
 # print(ORA_reactome)
 print("length")
