@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import time
+import requests
 #
 # # Import the relevant datasets
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
@@ -94,6 +95,66 @@ def misidentification_mass_plot():
     plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
     plt.show()
 
-misidentification_mass_plot()
+def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df):
+    #TODO Ensure the replacement compounds are organism-specific
+    '''
+    Randomly swaps a percentage of KEGG compounds and then performs ORA
+    :param percentage: percentage of compounds to be misidentified
+    :param processed_matrix: processed abundance matrix with KEGG compounds as columns
+    :param pathway_df: list of KEGG pathways
+    :return: mean number of p-values significant at P <0.1, Q-values, and standard deviation
+    '''
 
+    mat_unannotated = processed_matrix.iloc[:, :-1]
+    metabolites = mat_unannotated.columns.tolist()
 
+    # %of compounds without a mass in KEGG
+    # in_KEGG = all_compound_masses.index.tolist()
+    # print((len(np.setdiff1d(organism_bg, in_KEGG))/len(organism_bg))*100)
+
+    n_misidentified = int(len(metabolites)*(percentage/100))
+    p_vals = []
+    q_vals = []
+    for i in range(0, 1):
+        metabolites_to_replace = dict()
+        while len(metabolites_to_replace) < n_misidentified:
+            replacement_cpd = np.random.choice(metabolites, 1, replace=False)[0]
+            cpd_url = 'http://rest.kegg.jp/get/' + replacement_cpd
+            data = requests.get(cpd_url)
+            cpd_info = data.text
+            cpd_info = cpd_info.split("\n")
+            for field in cpd_info:
+                if field.startswith("FORMULA"):
+                    formula = field.split()
+                    replacement_compounds_url = 'http://rest.kegg.jp/find/compound/' + formula[1] + '/formula'
+                    data = requests.get(replacement_compounds_url)
+                    cpd_info = data.text.split("\n")
+                    cpd_info = list(filter(None, cpd_info))
+                    if len(cpd_info) > 1:
+                        potential_replacements = {"compound_to_replace": "", "potential_replacements_ids": []}
+                        potential_replacements["compound_to_replace"] = replacement_cpd
+                        for x in cpd_info:
+                            x = x.split("\t")
+                            potential_replacements["potential_replacements_ids"].append(x[0].replace("cpd:", ""))
+                        if len(np.setdiff1d(potential_replacements["potential_replacements_ids"], metabolites)) > 0:
+                            metabolites_to_replace[replacement_cpd] = potential_replacements
+        replacement_dict = {}
+
+        for compound, entries in metabolites_to_replace.items():
+            replacement_dict[compound] = np.random.choice(np.setdiff1d(entries["potential_replacements_ids"], metabolites), 1, replace=False)[0]
+        print(replacement_dict)
+
+        misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
+        # Perform t-tests and ORA
+        ttest_res = utils.t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
+        DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+        ora_res = utils.over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    mean_p_signficant_paths = np.mean(p_vals)
+    mean_q_signficant_paths = np.mean(q_vals)
+    sd_p_signficant_paths = np.std(p_vals)
+    sd_q_signficant_paths = np.std(q_vals)
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+
+print(misidentify_metabolites_by_formula(50, mat_yamada, KEGG_human_pathways))
