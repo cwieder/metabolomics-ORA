@@ -141,7 +141,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df)
         replacement_dict = {}
 
         for compound, entries in metabolites_to_replace.items():
-            replacement_dict[compound] = np.random.choice(np.setdiff1d(entries["potential_replacements_ids"], metabolites), 1, replace=False)[0]
+            replacement_dict[compound] = np.random.choice(np.setdiff1d(entries["potential_replacements_ids"], metabolites + list(replacement_dict.values())), 1, replace=False)[0]
         print(replacement_dict)
 
         misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
@@ -157,4 +157,4 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df)
     sd_q_signficant_paths = np.std(q_vals)
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 
-print(misidentify_metabolites_by_formula(50, mat_yamada, KEGG_human_pathways))
+print(misidentify_metabolites_by_formula(20, mat_yamada, KEGG_human_pathways))

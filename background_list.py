@@ -27,6 +27,44 @@ datasets = {"Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_K
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
 
+def plot_log_pvalues():
+    plt_dict = {}
+    for i in datasets.keys():
+        ora_res = utils.over_representation_analysis(datasets[i][0], datasets[i][1], datasets[i][2])
+        ora_res_all = utils.over_representation_analysis(datasets[i][0], datasets[i][3], datasets[i][2])
+        ora_res_pvals = np.negative(np.log10(ora_res["P-value"].tolist()))
+        ora_res_all_pvals = np.negative(np.log10(ora_res_all["P-value"].tolist()))
+        plt_dict[i] = [ora_res_pvals, ora_res_all_pvals]
+    # plt.figure(figsize=(6, 6))
+    # sns.set_style("darkgrid")
+    # sns.set_palette("muted")
+    # # plt.style.use("seaborn")
+    # for i in plt_dict.keys():
+    #     ax = sns.regplot(x=plt_dict[i][0], y=plt_dict[i][1],
+    #                      ci=None,
+    #                      scatter_kws={'s':5})
+    # ax.set_xlabel("Experimental background list (-log10 P-value)",
+    #               fontsize=12)
+    # ax.set_ylabel("All KEGG compounds (organism-specific) (-log10 P-value)",
+    #               fontsize=12)
+    # ax.set(ylim=(0, 10), xlim=(0, 10))
+    # ax.legend(plt_dict.keys())
+    # ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
+    # ax.axhline(y=1, linewidth=1, color='black',linestyle='--')
+    # ax.axvline(x=1, linewidth=1, color='black',linestyle='--')
+    # plt.show()
+
+    fig, ax = plt.subplots(3,2)
+    l = list(plt_dict.keys())
+    ax = ax.flatten()
+    for i in range(0, 5):
+        plt.sca(ax[i])
+        sns.regplot(x=plt_dict[l[i]][0], y=plt_dict[l[i]][1],
+                     ci=None,
+                     scatter_kws={'s': 5})
+    plt.show()
+plot_log_pvalues()
+
 def plot_grouped_stacked_bar():
     dataframes = []
     for i in datasets.keys():
@@ -73,7 +111,7 @@ def plot_grouped_stacked_bar():
 
 # Reducing background set
 def reduce_background_set():
-    percentage_reductions = [0, 1, 5, 10, 20, 50, 70]
+    percentage_reductions = [i for i in range(0, 90, 10)]
 
     # results_lists = []
     # for d in datasets.keys():
@@ -98,9 +136,8 @@ def reduce_background_set():
     plt.title("Number of pathways with P-values < 0.1 in \n response to varying background list size", fontsize=14)
     plt.legend()
     plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
-    plt.xlabel("Percentage reduction of background list", fontsize=14)
+    plt.xlabel("Percentage of original background list", fontsize=14)
     plt.savefig("background_list_reduction.png", dpi=300)
     plt.show()
 
-reduce_background_set()
 # Mind the gap set
