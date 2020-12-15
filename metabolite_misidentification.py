@@ -119,6 +119,7 @@ def random_misidentification_heatmap():
     ax = sns.heatmap(res_df, annot=True, cmap="mako")
     plt.subplots_adjust(bottom=0.28)
     plt.ylabel("Percentage metabolite misidentification (%)")
+    plt.savefig("random_misidentification_heatmap.png", dpi=300)
     plt.show()
 
 
@@ -135,33 +136,38 @@ def misidentification_mass_plot():
     results_lists = []
     for d in datasets.keys():
         print(d)
-        utils.misidentify_metabolites_by_mass(0, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
-                                              datasets[d][1])
-        # for i in percentage_misidentifications:
-        #     print(i)
-        #     utils.misidentify_metabolites_by_mass(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
-        #                                           datasets[d][1])
-            # res = utils.misidentify_metabolites_by_mass(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses, datasets[d][1])
-    #         results_lists.append([d, i] + res)
-    #
-    # res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
-    # res_df.to_csv("Metabolite_misidentification_by_mass_simulation.csv")
-    #
-    # simulation_res = res_df
-    # print(simulation_res.head)
-    # plt.figure()
-    # plt.style.use("seaborn")
-    # for i in datasets.keys():
-    #     plt.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage misidentification'],
-    #                  simulation_res[simulation_res["Dataset"] == i]['n_p_less_0.1'],
-    #                  yerr=simulation_res[simulation_res["Dataset"] == i]['p_std'],
-    #                  label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
-    # plt.title("Number of pathways with P-values < 0.1 in response to \n varying levels of metabolite misidentification", fontsize=14)
-    # plt.legend()
-    # plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
-    # plt.xlabel("Percentage of metabolites misidentified", fontsize=14)
-    # plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
-    # plt.show()
+        if d.startswith("Zamboni"):
+            for i in [i for i in range(0, 50, 10)]:
+                print(i)
+                res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
+                                                    zamboni=True)
+                results_lists.append([d, i] + res[:-1])
+        else:
+            for i in [i for i in range(0, 50, 10)]:
+                print(i)
+                res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2])
+                results_lists.append([d, i] + res[:-1])
+
+    res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
+    res_df.to_csv("Metabolite_misidentification_by_mass_simulation.csv")
+
+    simulation_res = res_df
+    print(simulation_res.head)
+    plt.figure()
+    plt.style.use("seaborn")
+    for i in datasets.keys():
+        plt.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage misidentification'],
+                     simulation_res[simulation_res["Dataset"] == i]['n_p_less_0.1'],
+                     yerr=simulation_res[simulation_res["Dataset"] == i]['p_std'],
+                     label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
+    plt.title("Number of pathways with P-values < 0.1 in response to \n varying levels of metabolite misidentification", fontsize=14)
+    plt.legend()
+    plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 10 random permutations", fontsize=14)
+    plt.xlabel("Percentage of metabolites misidentified", fontsize=14)
+    plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
+    plt.show()
+
+misidentification_mass_plot()
 
 def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df):
     #TODO Ensure the replacement compounds are organism-specific
@@ -225,5 +231,4 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df)
     sd_q_signficant_paths = np.std(q_vals)
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 
-random_misidentification_heatmap()
 # print(misidentify_metabolites_by_formula(20, mat_yamada, KEGG_human_pathways))

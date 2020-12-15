@@ -225,7 +225,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = mat_unannotated.columns.tolist()
         n_misidentified = int(len(metabolites) * (percentage / 100))
-        for i in range(0, 5):
+        for i in range(0, 100):
             # Randomly replace n compounds
             metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
@@ -244,7 +244,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     elif zamboni == True:
         metabolites = processed_matrix.columns.tolist()
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
-        for i in range(0, 5):
+        for i in range(0, 100):
             metabolites_to_replace = np.random.choice(list(set(metabolites)), n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds,
                                                                   [background_list + list(metabolites_to_replace)]), n_misidentified,
@@ -273,72 +273,102 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
     :param processed_matrix: processed abundance matrix with KEGG compounds as columns
     :param pathway_df: list of KEGG pathways
     :param all_compound_masses: list of all compounds and masses
-    :param organism_bg:organism specific compounds
+    :param organism_bg: organism specific compounds
     :return: mean number of p-values significant at P <0.1, Q-values, and standard deviation
     '''
 
     p_vals = []
     q_vals = []
-
     # if zamboni == False:
     KEGG_compounds_masses_organism = all_compound_masses[~all_compound_masses.index.isin(organism_bg)]
-    mat_unannotated = processed_matrix.iloc[:, :-1]
-    metabolites = mat_unannotated.columns.tolist()
 
-    # %of compounds without a mass in KEGG
-    # in_KEGG = all_compound_masses.index.tolist()
-    # print((len(np.setdiff1d(organism_bg, in_KEGG))/len(organism_bg))*100)
-    met_count = 0
-    for compound in list(set(all_compound_masses[all_compound_masses.index.isin(metabolites)].index.tolist())):
-        compound_mass = all_compound_masses[all_compound_masses.index == compound]['molecular_weight'].values[0]
-        mass_window = (compound_mass - 0.004, compound_mass + 0.004)
-        replacement_compounds_url = 'http://rest.kegg.jp/find/compound/' + str(mass_window[0]) + "-" + str(mass_window[1]) + '/exact_mass'
-        data = requests.get(replacement_compounds_url)
-        cpd_info = data.text.split("\n")
-        cpd_info = list(filter(None, cpd_info))
-        cpd_info = [i.split("\t") for i in cpd_info]
-        at_least_1_org_cpd = 0
-        for i in cpd_info:
-            id = i[0].replace("cpd:", "")
-            if id in np.setdiff1d(organism_bg, [compound]):
-                at_least_1_org_cpd += 1
-                break
-        if len(cpd_info) > 1 and at_least_1_org_cpd > 0:
-            met_count += 1
-    print(met_count, len(metabolites), (met_count/len(metabolites)*100))
+    if zamboni == False:
+        mat_unannotated = processed_matrix.iloc[:, :-1]
+        metabolites = list(set(mat_unannotated.columns.tolist()))
 
-    print(len(metabolites), len(all_compound_masses[all_compound_masses.index.isin(metabolites)].index.tolist()))
-    #
-    #     n_misidentified = int(len(metabolites)*(percentage/100))
-    #     for i in range(0, 5):
-    #         metabolites_to_replace = []
-    #         while len(metabolites_to_replace) < n_misidentified:
-    #             replacement_cpd = np.random.choice(metabolites, 1, replace=False)[0]
-    #             if replacement_cpd in all_compound_masses.index:
-    #                 # only replace metabolites with a mass
-    #                 metabolites_to_replace.append(replacement_cpd)
-    #
-    #         replacement_dict = dict.fromkeys(metabolites_to_replace, "")
-    #         for compound in metabolites_to_replace:
-    #             compound_mass = all_compound_masses[all_compound_masses.index == compound]['molecular_weight'].values[0]
-    #             # Replace with compounds within += 0.004 = 20 ppm
-    #             mass_window = (compound_mass-0.004, compound_mass+0.004)
-    #             # Only replace with organism-specific compounds
-    #             replacement_compounds = KEGG_compounds_masses_organism[KEGG_compounds_masses_organism['molecular_weight'].between(mass_window[0], mass_window[1])].index.tolist()
-    #             if not replacement_compounds:
-    #                 print("No compounds found within 20ppm range")
-    #             random_replacement = np.random.choice(np.setdiff1d(replacement_compounds, [metabolites + list(replacement_dict.values())]), 1)
-    #             # Ensure compounds not duplicated
-    #             replacement_dict[compound] = random_replacement[0]
-    #         misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
-    #         # Perform t-tests and ORA
-    #         ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
-    #         DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-    #         ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
-    #         p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
-    #         q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
-    # mean_p_signficant_paths = np.mean(p_vals)
-    # mean_q_signficant_paths = np.mean(q_vals)
-    # sd_p_signficant_paths = np.std(p_vals)
-    # sd_q_signficant_paths = np.std(q_vals)
-    # return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+        n_misidentified = int(len(metabolites)*(percentage/100))
+        for i in range(0, 10):
+            metabolites_to_replace = {}
+            while len(metabolites_to_replace) < n_misidentified:
+                replacement_cpd = np.random.choice(metabolites, 1, replace=False)[0]
+                if replacement_cpd not in all_compound_masses.index.tolist():
+                    continue
+                else:
+                    compound_mass = all_compound_masses[all_compound_masses.index == replacement_cpd]['molecular_weight'].values[0]
+                    mass_window = (compound_mass - 0.004, compound_mass + 0.004)
+                    replacement_compounds_url = 'http://rest.kegg.jp/find/compound/' + str(mass_window[0]) + "-" + str(mass_window[1]) + '/exact_mass'
+                    data = requests.get(replacement_compounds_url)
+                    cpd_info = data.text.split("\n")
+                    cpd_info = list(filter(None, cpd_info))
+                    cpd_info = [i.split("\t") for i in cpd_info]
+                    at_least_1_org_cpd = 0
+                    other_compounds = []
+                    if len(cpd_info) > 1:
+                        cpd_ids = []
+                        for i in cpd_info:
+                            id = i[0].replace("cpd:", "")
+                            if id in np.setdiff1d(organism_bg, [replacement_cpd] + list(metabolites_to_replace.keys()) + metabolites):
+                                # present in the organism bg but not the compound itself, already selected compounds or the background
+                                at_least_1_org_cpd += 1
+                                other_compounds.append(id)
+                                cpd_ids.append(id)
+                        if cpd_ids:
+                            replacement = np.random.choice(cpd_ids, 1)[0]
+                            if replacement not in list(metabolites_to_replace.values()):
+                                print(replacement_cpd)
+                                metabolites_to_replace[replacement_cpd] = replacement
+
+        misidentified_matrix = mat_unannotated.rename(columns=metabolites_to_replace)
+        # Perform t-tests and ORA
+        ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
+        DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+        ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    elif zamboni == True:
+        metabolites = processed_matrix.columns.tolist()
+        n_misidentified = int(len(set(metabolites)) * (percentage / 100))
+        for i in range(0, 10):
+            metabolites_to_replace = {}
+            while len(metabolites_to_replace) < n_misidentified:
+                replacement_cpd = np.random.choice(metabolites, 1, replace=False)[0]
+                if replacement_cpd not in all_compound_masses.index.tolist():
+                    continue
+                else:
+                    compound_mass = all_compound_masses[all_compound_masses.index == replacement_cpd]['molecular_weight'].values[0]
+                    mass_window = (compound_mass - 0.004, compound_mass + 0.004)
+                    replacement_compounds_url = 'http://rest.kegg.jp/find/compound/' + str(mass_window[0]) + "-" + str(mass_window[1]) + '/exact_mass'
+                    data = requests.get(replacement_compounds_url)
+                    cpd_info = data.text.split("\n")
+                    cpd_info = list(filter(None, cpd_info))
+                    cpd_info = [i.split("\t") for i in cpd_info]
+                    at_least_1_org_cpd = 0
+                    other_compounds = []
+                    if len(cpd_info) > 1:
+                        cpd_ids = []
+                        for i in cpd_info:
+                            id = i[0].replace("cpd:", "")
+                            if id in np.setdiff1d(organism_bg, [replacement_cpd] + list(metabolites_to_replace.keys()) + metabolites):
+                                # present in the organism bg but not the compound itself, already selected compounds or the background
+                                at_least_1_org_cpd += 1
+                                other_compounds.append(id)
+                                cpd_ids.append(id)
+                        if cpd_ids:
+                            replacement = np.random.choice(cpd_ids, 1)[0]
+                            if replacement not in list(metabolites_to_replace.values()):
+                                print(replacement_cpd)
+                                metabolites_to_replace[replacement_cpd] = replacement
+
+        misidentified_matrix = processed_matrix.rename(columns=metabolites_to_replace)
+        DEM = []
+        for x in misidentified_matrix.T.itertuples():
+            if x[1] > 6 or x[1] < -6:
+                DEM.append(x[0])
+        ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    mean_p_signficant_paths = np.mean(p_vals)
+    mean_q_signficant_paths = np.mean(q_vals)
+    sd_p_signficant_paths = np.std(p_vals)
+    sd_q_signficant_paths = np.std(q_vals)
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
