@@ -148,7 +148,7 @@ def zamboni_data(knockout):
         for items in cur_col.iteritems():
             if items[1] > 6 or items[1] < -6:
                 DA_metabolites.append(annotations_neg[items[0]])
-        DA_KEGG = [j for i in DA_metabolites for j in i]
+        DA_KEGG = [j for i in DA_metabolites for j in i] # filter out only annotated compounds
         strain_DA_compounds[strain] = DA_KEGG
 
     for strain in strain_DA_compounds.keys():
@@ -157,12 +157,39 @@ def zamboni_data(knockout):
         for items in cur_col.iteritems():
             if items[1] > 6 or items[1] < -6:
                 DA_metabolites.append(annotations_pos[items[0]])
-        DA_KEGG = [j for i in DA_metabolites for j in i]
-        strain_DA_compounds[strain] = DA_KEGG
-
+        DA_KEGG = [j for i in DA_metabolites for j in i] # filter out only annotated compounds
+        strain_DA_compounds[strain] += DA_KEGG
     background_list_all_annotations = list(set(sum(annotations_neg.values(), []) + sum(annotations_pos.values(), [])))
-
     DEM = list(set(strain_DA_compounds[knockout]))
 
-    return DEM, background_list_all_annotations, "temp"
+    # return strain matrix with all annotations
+    empty_anno_pos = [k for k, v in annotations_pos.items() if not v]
+    strain_pos_all = p_zscore.drop(empty_anno_pos).loc[:, knockout]
+    pos_rows = []
+    for ion, val in strain_pos_all.items():
+        ion_annos = annotations_pos[ion]
+        for i in ion_annos:
+            row = ("pos"+str(ion), i, val)
+            pos_rows.append(row)
+    pos_annos_df = pd.DataFrame(pos_rows, columns=['Ion', 'Annotation', 'Z-score'])
+
+    empty_anno_neg = [k for k, v in annotations_neg.items() if not v]
+    strain_neg_all = n_zscore.drop(empty_anno_neg).loc[:, knockout]
+    neg_rows = []
+    for ion, val in strain_neg_all.items():
+        ion_annos = annotations_neg[ion]
+        for i in ion_annos:
+            row = ("neg"+str(ion), i, val)
+            neg_rows.append(row)
+    neg_annos_df = pd.DataFrame(neg_rows, columns=['Ion', 'Annotation', 'Z-score'])
+    all_annotations_df = pd.concat([pos_annos_df, neg_annos_df])
+    all_annotations_df = all_annotations_df.set_index(all_annotations_df["Annotation"])
+    mat = all_annotations_df.iloc[:, 2:].T
+    # dem_count = []
+    # for x in all_annotations_df.itertuples():
+    #     if x[3] > 6 or x[3] < -6:
+    #         dem_count.append(x[2])
+    # print(len(set(dem_count)))
+
+    return DEM, background_list_all_annotations, mat
 
