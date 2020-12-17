@@ -22,7 +22,7 @@ all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flat
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 datasets = {"Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
             "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
@@ -121,7 +121,7 @@ def plot_grouped_stacked_bar():
 
 # Reducing background set
 def reduce_background_set():
-    percentage_reductions = [i for i in range(100, 0, -10)]
+    percentage_reductions = [i for i in range(50, 0, -10)]
 
     results_lists = []
     for d in datasets.keys():
@@ -134,7 +134,7 @@ def reduce_background_set():
                           columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
                                    "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
                                    "q_std", "sd_proportion_p_vals"])
-    res_df.to_csv("Background_reduction_simulation.csv")
+    res_df.to_csv("Background_reduction_simulation_keep_DEM.csv")
 
     # simulation_res = pd.read_csv("Background_reduction_simulation.csv")
     simulation_res = res_df
@@ -156,7 +156,7 @@ def reduce_background_set():
     plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
     # plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
     plt.xlabel("Percentage of original background list", fontsize=14)
-    plt.savefig("background_list_reduction_proportion.png", dpi=300)
+    plt.savefig("background_list_reduction_keep_DEM.png", dpi=300)
     plt.show()
 
 reduce_background_set()

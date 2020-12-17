@@ -9,9 +9,9 @@ import time
 import requests
 
 # Import the relevant datasets
-DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
-DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
-DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
+# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
+# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
+# DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
 
@@ -22,11 +22,11 @@ KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str
 all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
-
-datasets = {"Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
-            "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown],
-            "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM],
+#
+# datasets = {"Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada],
+#             "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
+#             "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown],
+datasets = {"Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS]}
 
 
@@ -137,16 +137,17 @@ def misidentification_mass_plot():
     for d in datasets.keys():
         print(d)
         if d.startswith("Zamboni"):
-            for i in [i for i in range(0, 50, 10)]:
+            for i in [i for i in range(30, 50, 5)]:
                 print(i)
-                res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
-                                                    zamboni=True)
-                results_lists.append([d, i] + res[:-1])
+                res = utils.misidentify_metabolites_by_mass(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
+                                                datasets[d][3], zamboni=True)
+                results_lists.append([d, i] + res)
         else:
-            for i in [i for i in range(0, 50, 10)]:
+            for i in [i for i in range(0, 50, 5)]:
                 print(i)
-                res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2])
-                results_lists.append([d, i] + res[:-1])
+                res = utils.misidentify_metabolites_by_mass(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
+                                                            datasets[d][3], zamboni=False)
+                results_lists.append([d, i] + res)
 
     res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
     res_df.to_csv("Metabolite_misidentification_by_mass_simulation.csv")
