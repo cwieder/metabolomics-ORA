@@ -25,11 +25,10 @@ for entry in compound_dict.keys():
     for i in cpd_info:
         if i.startswith("FORMULA"):
             formula = i.split()
-            print(formula[1])
             compound_dict[entry] = formula[1]
 
-print(compound_dict)
 df = pd.DataFrame.from_dict(compound_dict, orient="index", columns=["molecular_formula"])
 df.to_csv("KEGG_compound_formulae.csv")
+print("Completed KEGG formula download!")
 
 

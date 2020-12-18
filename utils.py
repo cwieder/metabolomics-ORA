@@ -10,7 +10,7 @@ import numpy as np
 import scipy.stats as stats
 import statsmodels.api as sm
 import molmass
-import requests
+import time
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -227,7 +227,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = mat_unannotated.columns.tolist()
         n_misidentified = int(len(metabolites) * (percentage / 100))
-        for i in range(0, 100):
+        for i in range(0, 10):
             # Randomly replace n compounds
             metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
@@ -246,7 +246,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     elif zamboni == True:
         metabolites = processed_matrix.columns.tolist()
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
-        for i in range(0, 100):
+        for i in range(0, 10):
             metabolites_to_replace = np.random.choice(list(set(metabolites)), n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds,
                                                                   [background_list + list(metabolites_to_replace)]), n_misidentified,
@@ -281,100 +281,153 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
 
     p_vals = []
     q_vals = []
-    # if zamboni == False:
-    KEGG_compounds_masses_organism = all_compound_masses[~all_compound_masses.index.isin(organism_bg)]
+    KEGG_compounds_masses_organism = all_compound_masses[all_compound_masses.index.isin(organism_bg)]
 
-    if zamboni == False:
+    if not zamboni:
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = list(set(mat_unannotated.columns.tolist()))
+        print(len(metabolites))
+        n_misidentified = int(len(set(metabolites)) * (percentage / 100))
 
-        n_misidentified = int(len(metabolites)*(percentage/100))
-        for i in range(0, 1):
-            metabolites_to_replace = {}
-            while len(metabolites_to_replace) < n_misidentified:
-                replacement_cpd = np.random.choice(metabolites, 1, replace=False)[0]
-                if replacement_cpd not in all_compound_masses.index.tolist():
-                    continue
-                else:
-                    compound_mass = all_compound_masses[all_compound_masses.index == replacement_cpd]['molecular_weight'].values[0]
-                    mass_window = (compound_mass - 0.004, compound_mass + 0.004)
-                    cpd_info = all_compound_masses[all_compound_masses['molecular_weight'].between(mass_window[0], mass_window[1], inclusive=False)].index.tolist()
-                    at_least_1_org_cpd = 0
-                    other_compounds = []
-                    if len(cpd_info) > 1:
-                        cpd_ids = []
-                        for i in cpd_info:
-                            # id = i[0].replace("cpd:", "")
-                            if i in np.setdiff1d(organism_bg, [replacement_cpd] + list(metabolites_to_replace.keys()) + metabolites):
-                                # present in the organism bg but not the compound itself, already selected compounds or the background
-                                at_least_1_org_cpd += 1
-                                other_compounds.append(i)
-                                cpd_ids.append(i)
-                        if cpd_ids:
-                            replacement = np.random.choice(cpd_ids, 1)[0]
-                            if replacement not in list(metabolites_to_replace.values()):
-                                metabolites_to_replace[replacement_cpd] = replacement
+        mass_dict = dict(zip(KEGG_compounds_masses_organism.index.tolist(), KEGG_compounds_masses_organism['molecular_weight'].tolist()))
+        metabolites_mass_dict = {k: v for k, v in mass_dict.items() if k in metabolites}
+        misidentifiable_metabolites = dict()
 
-            misidentified_matrix = mat_unannotated.rename(columns=metabolites_to_replace)
+        for cpd, mass in metabolites_mass_dict.items():
+            # TODO convert to ppm
+            # mass_window = (mass - 5, mass + 5)
+            mass_window = ((mass - (mass/1000000)*20), (mass + (mass/1000000)*20))
+            cpd_info = KEGG_compounds_masses_organism[KEGG_compounds_masses_organism['molecular_weight'].between(mass_window[0], mass_window[1],
+                                                                inclusive=False)].index.tolist()
+            if len(cpd_info) > 1:
+                misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
+        print(len(misidentifiable_metabolites))
+        for i in range(0, 5):
+            replacement_dict = dict()
+            while len(replacement_dict) < n_misidentified:
+                cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
+                replacement_cpd = np.random.choice(misidentifiable_metabolites[cpd_to_relpace], 1)[0]
+                if replacement_cpd not in list(replacement_dict.values()) and replacement_cpd not in metabolites:
+                    replacement_dict[cpd_to_relpace] = replacement_cpd
+            print(replacement_dict)
+            misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
             # Perform t-tests and ORA
             ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
             DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
             ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
             p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
-    elif zamboni == True:
+    elif zamboni:
         metabolites = list(set(processed_matrix.columns.tolist()))
+        print(len(metabolites))
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
 
-        mass_dict = dict(zip(all_compound_masses.index.tolist(), all_compound_masses['molecular_weight'].tolist()))
+        mass_dict = dict(zip(KEGG_compounds_masses_organism.index.tolist(), KEGG_compounds_masses_organism['molecular_weight'].tolist()))
         metabolites_mass_dict = {k: v for k, v in mass_dict.items() if k in metabolites}
         misidentifiable_metabolites = dict()
 
         for cpd, mass in metabolites_mass_dict.items():
             # TODO convert to ppm
-            mass_window = (mass - 0.004, mass + 0.004)
-            cpd_info = all_compound_masses[all_compound_masses['molecular_weight'].between(mass_window[0], mass_window[1],
+            # mass_window = (mass - 5, mass + 5)
+            mass_window = ((mass - (mass / 1000000) * 20), (mass + (mass / 1000000) * 20))
+            cpd_info = KEGG_compounds_masses_organism[KEGG_compounds_masses_organism['molecular_weight'].between(mass_window[0], mass_window[1],
                                                                 inclusive=False)].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
+        print(len(misidentifiable_metabolites))
+        for i in range(0, 5):
+            replacement_dict = dict()
+            while len(replacement_dict) < n_misidentified:
+                cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
+                replacement_cpd = np.random.choice(misidentifiable_metabolites[cpd_to_relpace], 1)[0]
+                if replacement_cpd not in list(replacement_dict.values()) and replacement_cpd not in metabolites:
+                    replacement_dict[cpd_to_relpace] = replacement_cpd
+            print(replacement_dict)
+            misidentified_matrix = processed_matrix.rename(columns=replacement_dict)
+            DEM = []
+            for x in misidentified_matrix.T.itertuples():
+                if x[1] > 6 or x[1] < -6:
+                    DEM.append(x[0])
+            ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+            p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+            q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    mean_p_signficant_paths = np.mean(p_vals)
+    mean_q_signficant_paths = np.mean(q_vals)
+    sd_p_signficant_paths = np.std(p_vals)
+    sd_q_signficant_paths = np.std(q_vals)
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 
-        replacement_dict = dict()
-        while len(replacement_dict) < n_misidentified:
-            cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
-            replacement_cpd = np.random.choice(misidentifiable_metabolites[cpd_to_relpace], 1)[0]
-            if replacement_cpd not in list(replacement_dict.values()) and replacement_cpd not in metabolites:
-                replacement_dict[cpd_to_relpace] = replacement_cpd
-        print(replacement_dict)
-        quit()
+def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df, all_cpd_formulas, organism_bg,
+                                       zamboni=False):
+    '''
+    Randomly swaps a percentage of KEGG compounds and then performs ORA
+    :param percentage: percentage of compounds to be misidentified
+    :param processed_matrix: processed abundance matrix with KEGG compounds as columns
+    :param pathway_df: list of KEGG pathways
+    :return: mean number of p-values significant at P <0.1, Q-values, and standard deviation
+    '''
+    KEGG_compounds_formula_organism = all_cpd_formulas[all_cpd_formulas.index.isin(organism_bg)]
+    print(len(organism_bg))
+    print(len(KEGG_compounds_formula_organism))
+    p_vals = []
+    q_vals = []
 
-        unsuitable_metabolites = []
-        print(len(metabolites), print(n_misidentified))
-        for i in range(0, 1):
-            metabolites_to_replace = {}
-            while len(metabolites_to_replace) < n_misidentified:
-                replacement_cpd = np.random.choice(np.setdiff1d(metabolites, unsuitable_metabolites), 1, replace=False)[0]
-                if replacement_cpd not in all_compound_masses.index.tolist():
-                    unsuitable_metabolites.append(replacement_cpd)
-                else:
-                    compound_mass = all_compound_masses[all_compound_masses.index == replacement_cpd]['molecular_weight'].values[0]
-                    mass_window = (compound_mass - 0.004, compound_mass + 0.004)
-                    cpd_info = all_compound_masses[all_compound_masses['molecular_weight'].between(mass_window[0], mass_window[1], inclusive=False)].index.tolist()
-                    if len(cpd_info) > 1:
-                        cpd_ids = []
-                        for i in cpd_info:
-                            # id = i[0].replace("cpd:", "")
-                            if i in np.setdiff1d(organism_bg, [replacement_cpd] + list(metabolites_to_replace.keys()) + metabolites):
-                                # present in the organism bg but not the compound itself, already selected compounds or the background
-                                cpd_ids.append(i)
-                        if cpd_ids:
-                            replacement = np.random.choice(cpd_ids, 1)[0]
-                            if replacement not in list(metabolites_to_replace.values()):
-                                metabolites_to_replace[replacement_cpd] = replacement
-                    else:
-                        unsuitable_metabolites.append(replacement_cpd)
-            print(metabolites_to_replace)
+    if not zamboni:
+        mat_unannotated = processed_matrix.iloc[:, :-1]
+        metabolites = mat_unannotated.columns.tolist()
+        n_misidentified = int(len(metabolites)*(percentage/100))
 
-            misidentified_matrix = processed_matrix.rename(columns=metabolites_to_replace)
+        misidentifiable_metabolites = dict()
+        compound_formula_dict = dict(zip(KEGG_compounds_formula_organism.index.tolist(), KEGG_compounds_formula_organism['molecular_formula'].tolist()))
+        metabolites_formula_dict = {k: v for k, v in compound_formula_dict.items() if k in metabolites}
+        # if at least 1 other formula, add to misidentifiable metabolites dict
+
+        for cpd, formula in metabolites_formula_dict.items():
+            cpd_info = KEGG_compounds_formula_organism[
+                KEGG_compounds_formula_organism['molecular_formula'] == formula].index.tolist()
+            if len(cpd_info) > 1:
+                misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
+        print(len(misidentifiable_metabolites))
+        for i in range(0, 5):
+            replacement_dict = dict()
+            while len(replacement_dict) < n_misidentified:
+                cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
+                replacement_cpd = np.random.choice(misidentifiable_metabolites[cpd_to_relpace], 1)[0]
+                if replacement_cpd not in list(replacement_dict.values()) and replacement_cpd not in metabolites:
+                    replacement_dict[cpd_to_relpace] = replacement_cpd
+            print(replacement_dict)
+            misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
+            # Perform t-tests and ORA
+            ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")
+            DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+            ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
+            p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+            q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+    elif zamboni:
+        metabolites = list(set(processed_matrix.columns.tolist()))
+        print(len(metabolites))
+        n_misidentified = int(len(set(metabolites)) * (percentage / 100))
+        misidentifiable_metabolites = dict()
+        compound_formula_dict = dict(zip(KEGG_compounds_formula_organism.index.tolist(),
+                                         KEGG_compounds_formula_organism['molecular_formula'].tolist()))
+        metabolites_formula_dict = {k: v for k, v in compound_formula_dict.items() if k in metabolites}
+        # if at least 1 other formula, add to misidentifiable metabolites dict
+
+        for cpd, formula in metabolites_formula_dict.items():
+            cpd_info = KEGG_compounds_formula_organism[
+                KEGG_compounds_formula_organism['molecular_formula'] == formula].index.tolist()
+            if len(cpd_info) > 1:
+                misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
+        print(len(misidentifiable_metabolites))
+        for i in range(0, 5):
+            replacement_dict = dict()
+            while len(replacement_dict) < n_misidentified:
+                cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
+                replacement_cpd = np.random.choice(misidentifiable_metabolites[cpd_to_relpace], 1)[0]
+                if replacement_cpd not in list(replacement_dict.values()) and replacement_cpd not in metabolites:
+                    replacement_dict[cpd_to_relpace] = replacement_cpd
+            print(replacement_dict)
+            misidentified_matrix = processed_matrix.rename(columns=replacement_dict)
             DEM = []
             for x in misidentified_matrix.T.itertuples():
                 if x[1] > 6 or x[1] < -6:

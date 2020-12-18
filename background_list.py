@@ -22,7 +22,7 @@ all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flat
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 datasets = {"Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
             "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
@@ -38,10 +38,9 @@ def plot_log_pvalues():
     plt.figure(figsize=(6, 6))
     sns.set_style("darkgrid")
     sns.set_palette("muted")
-    # plt.style.use("seaborn")
     for i in plt_dict.keys():
         ax = sns.regplot(x=plt_dict[i][0], y=plt_dict[i][1],
-                         ci=None,
+                         ci=95,
                          scatter_kws={'s':5})
     ax.set_xlabel("Experimental background list (-log10 P-value)",
                   fontsize=12)
@@ -74,6 +73,8 @@ def plot_log_pvalues():
     # plt.tight_layout()
     # plt.savefig("datasets_log_p_subplots.png", dpi = 300)
     # plt.show()
+
+plot_log_pvalues()
 
 def plot_grouped_stacked_bar():
     dataframes = []
@@ -159,5 +160,5 @@ def reduce_background_set():
     plt.savefig("background_list_reduction_keep_DEM.png", dpi=300)
     plt.show()
 
-reduce_background_set()
+
 # Mind the gap set
