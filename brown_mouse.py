@@ -9,7 +9,7 @@ def brown_data():
 
     metadata = pd.read_csv("../Brown_mouse_diet/s_metabolon.txt", sep="\t")
     sample_name = [i[0:10] for i in metadata["Sample Name"]]
-    diet = metadata["Factor Value[Genotype]"].tolist()
+    diet = metadata["Factor Value[Diet]"].tolist()
     metadata_dict = dict(zip(sample_name, diet))
     mat_proc = utils.data_processing(mat, firstrow=6, firstcol=1)
 

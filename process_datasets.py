@@ -193,3 +193,20 @@ def zamboni_data(knockout):
 
     return DEM, background_list_all_annotations, mat
 
+def auwerx_data():
+    mat = pd.read_excel("../mitochondria/abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
+    mat = mat.iloc[6:, :]
+    mat = mat.loc[:, ~mat.columns.duplicated(keep='first')]
+    groups = [i.split(".", 1)[0] for i in mat.index.tolist()]
+    mat['Group'] = groups
+    mat_selected_groups = mat.loc[mat['Group'].isin(['Acti', 'FCCP'])]
+    matrix_proc = utils.data_processing(mat_selected_groups.iloc[:, :-1], 0, 0)
+    matrix_proc_copy = matrix_proc.copy()
+    matrix_proc_copy['Group'] = mat_selected_groups['Group']
+    ttest_res = utils.t_tests(matrix_proc, mat_selected_groups["Group"], "fdr_bh")
+    DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+    background_list = matrix_proc.columns.tolist()
+    print(matrix_proc_copy)
+
+    return DA_metabolites, background_list, matrix_proc_copy
+

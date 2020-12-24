@@ -7,8 +7,9 @@ import seaborn as sns
 import numpy as np
 
 # Import the relevant datasets
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data()
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
-DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
+# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
 DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
@@ -21,8 +22,9 @@ all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
-datasets = {"Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
+            "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
+            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
             "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
@@ -74,7 +76,7 @@ def plot_log_pvalues():
     # plt.savefig("datasets_log_p_subplots.png", dpi = 300)
     # plt.show()
 
-plot_log_pvalues()
+# plot_log_pvalues()
 
 def plot_grouped_stacked_bar():
     dataframes = []
@@ -86,7 +88,7 @@ def plot_grouped_stacked_bar():
         n_p_less_01_all = len(ora_res_all[ora_res_all["P-value"] < 0.1]["P-value"].tolist())
         n_q_less_01_all = len(ora_res_all[ora_res_all["P-adjust"] < 0.1]["P-adjust"].tolist())
         df = pd.DataFrame([[n_p_less_01, n_q_less_01], [n_p_less_01_all, n_q_less_01_all]],
-                          index=["Experimental background list", "All KEGG compounds"], columns=["P", "Q"])
+                          index=["Specified background list", "All KEGG compounds"], columns=["P", "Q"])
         df["Name"] = "df"+i
         dataframes.append(df)
 
@@ -110,19 +112,21 @@ def plot_grouped_stacked_bar():
     ax.set_xlabel('Background list used in ORA', fontsize=14)
     ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)',
            fontsize=14)
-    labels = ["Yamada", "Stevens", "Brown", "Zamboni (yfgM)", "Zamboni (dcuS)"]
+    labels = ["Auwerx", "Yamada", "Stevens", "Brown", "Zamboni (yfgM)", "Zamboni (dcuS)"]
     h, l = ax.get_legend_handles_labels()
-    ax.legend(h[0:5], labels, title="Dataset")
+    ax.legend(h[0:6], labels, title="Dataset")
     # Set hatches for q-values bars
     bars = ax.patches
-    for i in range(10, 20, 1):
+    for i in range(12, 24, 1):
         bars[i].set_hatch('//')
     plt.savefig("all_vs_experimental_barchart.png", dpi=300)
     plt.show()
 
+# plot_grouped_stacked_bar()
+
 # Reducing background set
 def reduce_background_set():
-    percentage_reductions = [i for i in range(50, 0, -10)]
+    percentage_reductions = [i for i in range(100, 0, -10)]
 
     results_lists = []
     for d in datasets.keys():
@@ -135,7 +139,7 @@ def reduce_background_set():
                           columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
                                    "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
                                    "q_std", "sd_proportion_p_vals"])
-    res_df.to_csv("Background_reduction_simulation_keep_DEM.csv")
+    # res_df.to_csv("Background_reduction_simulation_keep_DEM.csv")
 
     # simulation_res = pd.read_csv("Background_reduction_simulation.csv")
     simulation_res = res_df
@@ -150,15 +154,14 @@ def reduce_background_set():
     # plt.title("Number of pathways with P-values < 0.1 in \n response to varying background list size", fontsize=14)
     plt.xlim(100, 10)
     # plt.legend()
-    # Shrink current axis by 20%
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
     plt.subplots_adjust(right=0.7)
     # plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
     # plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
-    plt.xlabel("Percentage of original background list", fontsize=14)
-    plt.savefig("background_list_reduction_keep_DEM.png", dpi=300)
+    plt.xlabel("Percentage of original background list")
+    plt.savefig("background_list_reduction_proportion.png", dpi=300)
     plt.show()
 
-
+reduce_background_set()
 # Mind the gap set

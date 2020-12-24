@@ -166,14 +166,20 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
     #                        columns=["Pathway_ID", "Pathway_name", "P-value", "P-adjust"])
     # return results
 
-def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_df):
-    '''
+def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_df, keep_DEM=False):
+    """
     Reduces size of background list by random removal of compounds
     :param background_list: background list of compound names/IDs
     :param percentage: percentage reduction of list desired
+    :param pathways_df: df of organism specific pathways
+    :param keep_DEM: do not delete differentially abundant metabolites
     :return: reduced background list
-    '''
-    list_size = int(len(background_list)*(percentage/100))
+    """
+    bg_list_without_dem = [i for i in background_list if i not in DEM_list]
+    if not keep_DEM:
+        list_size = int(len(background_list)*(percentage/100))
+    else:
+        list_size = int(len(bg_list_without_dem)*(percentage/100))
     print(list_size, str(percentage) +"%")
 
     p_vals = []
@@ -187,22 +193,24 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     baseline_significant_paths.append(len(baseline_res[baseline_res["P-value"] < 0.1]["P-value"].tolist()))
     # q_vals.append(len(baseline_res[baseline_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
 
-    for i in range(0, 10):
-        # Can remove DEM
-        # bg_list_reduced = np.random.choice(background_list, list_size, replace=False)
-        # Doesn't remove DEM
-        bg_list_reduced = np.random.choice(np.setdiff1d(background_list, DEM_list), list_size, replace=False)
+    for i in range(0, 100):
+        if not keep_DEM:
+            bg_list_reduced = np.random.choice(background_list, list_size, replace=False)
+        else:
+            bg_list_reduced = np.random.choice(np.setdiff1d(bg_list_without_dem, DEM_list), list_size, replace=False)
+            bg_list_reduced = bg_list_reduced.tolist() + DEM_list
         ora_res = over_representation_analysis(DEM_list, bg_list_reduced, pathways_df)
         p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        print(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()), baseline_significant_paths[0])
         proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())/baseline_significant_paths[0])
         q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
         # proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist())/q_vals[0])
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
     mean_proportion_p_vals = np.mean(proportion_of_original_pathways_signficant_p)
-    sd_p_signficant_paths = np.std(p_vals)
-    sd_q_signficant_paths = np.std(q_vals)
-    sd_proportion_p_vals = np.std(proportion_of_original_pathways_signficant_p)
+    sd_p_signficant_paths = stats.sem(p_vals)
+    sd_q_signficant_paths = stats.sem(q_vals)
+    sd_proportion_p_vals = stats.sem(proportion_of_original_pathways_signficant_p)
     return [mean_p_signficant_paths, mean_q_signficant_paths, mean_proportion_p_vals,
             sd_p_signficant_paths, sd_q_signficant_paths, sd_proportion_p_vals]
 
@@ -263,8 +271,8 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
             significant_pathways.append(ora_res[ora_res["P-value"] < 0.1]["Pathway_ID"].tolist())
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
-    sd_p_signficant_paths = np.std(p_vals)
-    sd_q_signficant_paths = np.std(q_vals)
+    sd_p_signficant_paths = stats.sem(p_vals)
+    sd_q_signficant_paths = stats.sem(q_vals)
 
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths, significant_pathways]
 
@@ -294,7 +302,6 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
         misidentifiable_metabolites = dict()
 
         for cpd, mass in metabolites_mass_dict.items():
-            # TODO convert to ppm
             # mass_window = (mass - 5, mass + 5)
             mass_window = ((mass - (mass/1000000)*20), (mass + (mass/1000000)*20))
             cpd_info = KEGG_compounds_masses_organism[KEGG_compounds_masses_organism['molecular_weight'].between(mass_window[0], mass_window[1],
@@ -351,8 +358,8 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
-    sd_p_signficant_paths = np.std(p_vals)
-    sd_q_signficant_paths = np.std(q_vals)
+    sd_p_signficant_paths = stats.sem(p_vals)
+    sd_q_signficant_paths = stats.sem(q_vals)
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
 
 def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df, all_cpd_formulas, organism_bg,
@@ -435,6 +442,6 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
-    sd_p_signficant_paths = np.std(p_vals)
-    sd_q_signficant_paths = np.std(q_vals)
+    sd_p_signficant_paths = stats.sem(p_vals)
+    sd_q_signficant_paths = stats.sem(q_vals)
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
