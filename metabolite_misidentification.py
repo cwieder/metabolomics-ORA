@@ -16,7 +16,6 @@ DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
 
-print(mat_auwerx)
 # Import pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
 KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
@@ -25,10 +24,10 @@ all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
-datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx],
-            "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada],
+datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx, [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
+            "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
             # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
-            "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown],
+            "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS]}
 
@@ -69,24 +68,29 @@ def random_misidentification():
     plt.savefig("metabolite_random_misidentification.png", dpi=300)
     plt.show()
 
-random_misidentification()
 
 def TPR_heatmap(TPR=False, FPR=False):
+    """
+    Plots precision/TRP/FPR heatmap
+    :param TPR: plot TRP
+    :param FPR: plot FPR
+    :return: heatmap
+    """
     results_lists = []
-    for d in ["Yamada", "Brown", "Zamboni (dcuS)", "Zamboni (yfgM)"]:
+    for d in ["Auwerx", "Yamada", "Brown", "Zamboni (dcuS)", "Zamboni (yfgM)"]:
         print(d)
         if d.startswith("Zamboni"):
             original_pathways = utils.misidentify_metabolites(0, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
                                                     zamboni=True)[4][0]
 
-            for i in [i for i in range(10, 70, 10)]:
+            for i in [i for i in range(10, 75, 5)]:
                 print(i)
                 res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
                                                     zamboni=True)[4]
                 misidentified_pathways = res
                 pathway_fractions = []
                 for x in misidentified_pathways:
-                    total_significant_paths = len(original_pathways)
+                    total_significant_paths = len(original_pathways) # True positive + false positive
                     number_common_paths = len([i for i in x if i in original_pathways])
                     if TPR:
                         fraction_pathways = number_common_paths/total_significant_paths
@@ -108,7 +112,7 @@ def TPR_heatmap(TPR=False, FPR=False):
                 misidentified_pathways = res
                 pathway_fractions = []
                 for x in misidentified_pathways:
-                    total_significant_paths = len(original_pathways)
+                    total_significant_paths = len(original_pathways) # True positive + false positive
                     number_common_paths = len([i for i in x if i in original_pathways])
                     if TPR:
                         fraction_pathways = number_common_paths / total_significant_paths
@@ -116,7 +120,6 @@ def TPR_heatmap(TPR=False, FPR=False):
                     elif FPR:
                         fraction_pathways = (total_significant_paths - number_common_paths) / total_significant_paths
                         pathway_fractions.append(fraction_pathways)
-                    time.sleep(1)
                 avg_fraction = np.mean(pathway_fractions)
                 results_lists.append([d, i, avg_fraction])
         time.sleep(1)
@@ -128,12 +131,10 @@ def TPR_heatmap(TPR=False, FPR=False):
     ax = sns.heatmap(res_df, annot=True, cmap="rocket")
     plt.subplots_adjust(bottom=0.28)
     plt.ylabel("Percentage metabolite misidentification (%)")
-    plt.savefig("random_misidentification_heatmap_FPR.png", dpi=300)
+    # plt.savefig("random_misidentification_heatmap_precision.png", dpi=300)
     plt.show()
 
-# TPR_heatmap(FPR=True)
-
-
+# TPR_heatmap(TPR=True)
 
 # Misidentification by mass
 # Obtained exact masses for KEGG compounds
@@ -155,7 +156,7 @@ def misidentification_mass_plot():
                                                 datasets[d][3], zamboni=True)
                 results_lists.append([d, i] + res)
         else:
-            for i in [i for i in range(0, 40, 5)]:
+            for i in datasets[d][5]:
                 print(i)
                 res = utils.misidentify_metabolites_by_mass(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
                                                             datasets[d][3], zamboni=False)
@@ -175,8 +176,8 @@ def misidentification_mass_plot():
                      label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
     # plt.title("Number of pathways with P-values < 0.1 in response to \n varying levels of metabolite misidentification", fontsize=14)
     plt.legend()
-    plt.ylabel("Mean number of pathways significant at P < 0.1", fontsize=14)
-    plt.xlabel("Percentage of metabolites misidentified", fontsize=14)
+    plt.ylabel("Mean number of pathways significant at P < 0.1")
+    plt.xlabel("Percentage of metabolites misidentified")
     plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
     plt.show()
 
@@ -195,7 +196,7 @@ def misidentification_formula_plot():
                                                 datasets[d][3], zamboni=True)
                 results_lists.append([d, i] + res)
         else:
-            for i in [i for i in range(0, 35, 5)]:
+            for i in datasets[d][6]:
                 print(i)
                 res = utils.misidentify_metabolites_by_formula(i, datasets[d][4], datasets[d][2], KEGG_compounds_formula,
                                                             datasets[d][3], zamboni=False)
@@ -215,9 +216,9 @@ def misidentification_formula_plot():
                      label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
     plt.title("Number of pathways with P-values < 0.1 in response to \n varying levels of metabolite misidentification", fontsize=14)
     plt.legend()
-    plt.ylabel("Mean number of pathways significant at P < 0.1", fontsize=14)
-    plt.xlabel("Percentage of metabolites misidentified", fontsize=14)
+    plt.ylabel("Mean number of pathways significant at P < 0.1")
+    plt.xlabel("Percentage of metabolites misidentified")
     plt.savefig("metabolite_misidentification_by_formula.png", dpi=300)
     plt.show()
 
-# misidentification_formula_plot()
+misidentification_formula_plot()

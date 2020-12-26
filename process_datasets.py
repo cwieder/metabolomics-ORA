@@ -206,7 +206,6 @@ def auwerx_data():
     ttest_res = utils.t_tests(matrix_proc, mat_selected_groups["Group"], "fdr_bh")
     DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background_list = matrix_proc.columns.tolist()
-    print(matrix_proc_copy)
 
     return DA_metabolites, background_list, matrix_proc_copy
 
