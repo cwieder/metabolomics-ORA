@@ -76,65 +76,77 @@ def TPR_heatmap(TPR=False, FPR=False):
     :param FPR: plot FPR
     :return: heatmap
     """
-    results_lists = []
+    results_TPR = []
+    results_FPR = []
     for d in ["Auwerx", "Yamada", "Brown", "Zamboni (dcuS)", "Zamboni (yfgM)"]:
         print(d)
         if d.startswith("Zamboni"):
             original_pathways = utils.misidentify_metabolites(0, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
                                                     zamboni=True)[4][0]
 
-            for i in [i for i in range(10, 75, 5)]:
+            for i in [i for i in range(10, 70, 10)]:
                 print(i)
                 res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
                                                     zamboni=True)[4]
                 misidentified_pathways = res
-                pathway_fractions = []
+                pathway_fractions_TPR = []
+                pathway_fractions_FPR = []
                 for x in misidentified_pathways:
                     total_significant_paths = len(original_pathways) # True positive + false positive
                     number_common_paths = len([i for i in x if i in original_pathways])
-                    if TPR:
-                        fraction_pathways = number_common_paths/total_significant_paths
-                        pathway_fractions.append(fraction_pathways)
-                    elif FPR:
-                        fraction_pathways = (total_significant_paths-number_common_paths)/total_significant_paths
-                        pathway_fractions.append(fraction_pathways)
-                avg_fraction = np.mean(pathway_fractions)
-                results_lists.append([d, i, avg_fraction])
+                    fraction_pathways_TPR = number_common_paths/total_significant_paths
+                    pathway_fractions_TPR.append(fraction_pathways_TPR)
+                    fraction_pathways_FPR = (total_significant_paths-number_common_paths)/total_significant_paths
+                    pathway_fractions_FPR.append(fraction_pathways_FPR)
+                avg_fraction_TPR = np.mean(pathway_fractions_TPR)
+                avg_fraction_FPR = np.mean(pathway_fractions_FPR)
+                results_TPR.append([d, i, avg_fraction_TPR])
+                results_FPR.append([d, i, avg_fraction_FPR])
 
         else:
             original_pathways = \
             utils.misidentify_metabolites(0, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2],
                                           zamboni=False)[4][0]
-            misidentified_pathways = []
             for i in [i for i in range(10, 70, 10)]:
                 print(i)
                 res = utils.misidentify_metabolites(i, datasets[d][4], datasets[d][3], datasets[d][1], datasets[d][2])[4]
                 misidentified_pathways = res
-                pathway_fractions = []
+                pathway_fractions_TPR = []
+                pathway_fractions_FPR = []
                 for x in misidentified_pathways:
                     total_significant_paths = len(original_pathways) # True positive + false positive
                     number_common_paths = len([i for i in x if i in original_pathways])
-                    if TPR:
-                        fraction_pathways = number_common_paths / total_significant_paths
-                        pathway_fractions.append(fraction_pathways)
-                    elif FPR:
-                        fraction_pathways = (total_significant_paths - number_common_paths) / total_significant_paths
-                        pathway_fractions.append(fraction_pathways)
-                avg_fraction = np.mean(pathway_fractions)
-                results_lists.append([d, i, avg_fraction])
+                    fraction_pathways_TPR = number_common_paths/total_significant_paths
+                    pathway_fractions_TPR.append(fraction_pathways_TPR)
+                    fraction_pathways_FPR = (total_significant_paths-number_common_paths)/total_significant_paths
+                    pathway_fractions_FPR.append(fraction_pathways_FPR)
+                avg_fraction_TPR = np.mean(pathway_fractions_TPR)
+                avg_fraction_FPR = np.mean(pathway_fractions_FPR)
+                results_TPR.append([d, i, avg_fraction_TPR])
+                results_FPR.append([d, i, avg_fraction_FPR])
         time.sleep(1)
-    res_df = pd.DataFrame(results_lists,
+    res_df_TPR = pd.DataFrame(results_TPR,
                           columns=["Dataset", "Percentage misidentification", "Average fraction"])
-    res_df = res_df.pivot(index='Percentage misidentification', columns='Dataset', values='Average fraction')
-    res_df.to_csv("metabolite_misidentification_heatmap.csv")
-    res_df = pd.read_csv("metabolite_misidentification_heatmap.csv", index_col=0)
-    ax = sns.heatmap(res_df, annot=True, cmap="rocket")
-    plt.subplots_adjust(bottom=0.28)
-    plt.ylabel("Percentage metabolite misidentification (%)")
-    # plt.savefig("random_misidentification_heatmap_precision.png", dpi=300)
+    res_df_FPR = pd.DataFrame(results_FPR,
+                              columns=["Dataset", "Percentage misidentification", "Average fraction"])
+
+    res_df_TPR = res_df_TPR.pivot(index='Percentage misidentification', columns='Dataset', values='Average fraction')
+    res_df_FPR = res_df_FPR.pivot(index='Percentage misidentification', columns='Dataset', values='Average fraction')
+    # res_df.to_csv("metabolite_misidentification_heatmap.csv")
+    # res_df = pd.read_csv("metabolite_misidentification_heatmap.csv", index_col=0)
+    plt.figure(figsize=(12, 6))
+    plt.subplot(121)
+    plt.title('TPR')
+    sns.heatmap(res_df_TPR, annot=True, cmap="mako")
+    plt.subplot(122)
+    plt.title('FPR')
+    sns.heatmap(res_df_FPR, annot=True, cmap="rocket")
+        # plt.subplots_adjust(bottom=0.28)
+        # plt.ylabel("Percentage metabolite misidentification (%)")
+        # # plt.savefig("random_misidentification_heatmap_precision.png", dpi=300)
     plt.show()
 
-# TPR_heatmap(TPR=True)
+TPR_heatmap(TPR=True)
 
 # Misidentification by mass
 # Obtained exact masses for KEGG compounds
@@ -221,4 +233,4 @@ def misidentification_formula_plot():
     plt.savefig("metabolite_misidentification_by_formula.png", dpi=300)
     plt.show()
 
-misidentification_formula_plot()
+# misidentification_formula_plot()
