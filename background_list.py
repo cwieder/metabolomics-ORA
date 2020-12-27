@@ -9,7 +9,7 @@ import numpy as np
 # Import the relevant datasets
 DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data()
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
-# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
 DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
@@ -22,9 +22,10 @@ all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
+
 datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
             "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
             "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
@@ -34,6 +35,9 @@ def plot_log_pvalues():
     for i in datasets.keys():
         ora_res = utils.over_representation_analysis(datasets[i][0], datasets[i][1], datasets[i][2])
         ora_res_all = utils.over_representation_analysis(datasets[i][0], datasets[i][3], datasets[i][2])
+
+        intersect = (set(ora_res["Pathway_ID"].tolist()) & set(ora_res_all["Pathway_ID"].tolist()))
+        ora_res_all = ora_res_all[ora_res_all["Pathway_ID"].isin(intersect)]
         ora_res_pvals = np.negative(np.log10(ora_res["P-value"].tolist()))
         ora_res_all_pvals = np.negative(np.log10(ora_res_all["P-value"].tolist()))
         plt_dict[i] = [ora_res_pvals, ora_res_all_pvals]
@@ -55,28 +59,28 @@ def plot_log_pvalues():
     ax.axvline(x=1, linewidth=1, color='black',linestyle='--')
     plt.show()
 
-    # fig, ax = plt.subplots(3,2)
-    # l = list(plt_dict.keys())
-    # ax = ax.flatten()
-    # colours = sns.color_palette("muted")
-    # for i in range(0, 5):
-    #     plt.sca(ax[i])
-    #     sns.regplot(x=plt_dict[l[i]][0], y=plt_dict[l[i]][1],
-    #                  ci=None,
-    #                  scatter_kws={'s': 5}, color=colours[i])
-    #     lims = [
-    #         np.min([plt.xlim(), plt.ylim()]),  # min of both axes
-    #         np.max([plt.xlim(), plt.ylim()]),  # max of both axes
-    #     ]
-    #
-    #     # now plot both limits against eachother
-    #     plt.plot(lims, lims, 'k-', alpha=0.75, zorder=0, linestyle=':', color='black')
-    #     plt.title(l[i])
-    # plt.tight_layout()
-    # plt.savefig("datasets_log_p_subplots.png", dpi = 300)
-    # plt.show()
+    fig, ax = plt.subplots(3,2)
+    l = list(plt_dict.keys())
+    ax = ax.flatten()
+    colours = sns.color_palette("muted")
+    for i in range(0, 6):
+        plt.sca(ax[i])
+        sns.regplot(x=plt_dict[l[i]][0], y=plt_dict[l[i]][1],
+                     ci=None,
+                     scatter_kws={'s': 5}, color=colours[i])
+        lims = [
+            np.min([plt.xlim(), plt.ylim()]),  # min of both axes
+            np.max([plt.xlim(), plt.ylim()]),  # max of both axes
+        ]
 
-# plot_log_pvalues()
+        # now plot both limits against eachother
+        plt.plot(lims, lims, 'k-', alpha=0.75, zorder=0, linestyle=':', color='black')
+        plt.title(l[i])
+    plt.tight_layout()
+    plt.savefig("datasets_log_p_subplots.png", dpi = 300)
+    plt.show()
+
+plot_log_pvalues()
 
 def plot_grouped_stacked_bar():
     dataframes = []
@@ -119,7 +123,7 @@ def plot_grouped_stacked_bar():
     bars = ax.patches
     for i in range(12, 24, 1):
         bars[i].set_hatch('//')
-    plt.savefig("all_vs_experimental_barchart.png", dpi=300)
+    # plt.savefig("all_vs_experimental_barchart.png", dpi=300)
     plt.show()
 
 # plot_grouped_stacked_bar()
@@ -160,8 +164,8 @@ def reduce_background_set():
     plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
     # plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
     plt.xlabel("Percentage of original background list")
-    plt.savefig("background_list_reduction_proportion.png", dpi=300)
+    # plt.savefig("background_list_reduction_proportion.png", dpi=300)
     plt.show()
 
-reduce_background_set()
+# reduce_background_set()
 # Mind the gap set

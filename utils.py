@@ -134,10 +134,10 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
         if not pathway_compounds or len(pathway_compounds) < 3:
             continue
         else:
-            DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
-            DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds))
-            compound_in_pathway_not_DEM = len(set(background_list) & set(pathway_compounds))
-            compound_not_in_pathway_not_DEM = len(np.setdiff1d(background_list, pathway_compounds))
+            DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds)) #k: compounds in DEM list AND pathway
+            DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds)) #K: compounds in DEM list not in pathway
+            compound_in_pathway_not_DEM = len(set(np.setdiff1d(background_list, DEM_list)) & set(pathway_compounds)) #compounds present in bg set and pathway
+            compound_not_in_pathway_not_DEM = len(np.setdiff1d(np.setdiff1d(background_list, DEM_list), pathway_compounds)) #compounds not present in pathway
 
             if (DEM_in_pathway and compound_in_pathway_not_DEM) == 0:
                 continue
@@ -235,7 +235,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = mat_unannotated.columns.tolist()
         n_misidentified = int(len(metabolites) * (percentage / 100))
-        for i in range(0, 10):
+        for i in range(0, 100):
             # Randomly replace n compounds
             metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
@@ -254,7 +254,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     elif zamboni == True:
         metabolites = processed_matrix.columns.tolist()
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
-        for i in range(0, 10):
+        for i in range(0, 100):
             metabolites_to_replace = np.random.choice(list(set(metabolites)), n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds,
                                                                   [background_list + list(metabolites_to_replace)]), n_misidentified,

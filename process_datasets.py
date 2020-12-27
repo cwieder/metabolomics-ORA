@@ -54,7 +54,7 @@ def brown_data():
     mat_proc["Group"] = mat_proc.index.map(metadata_dict)
 
     ttest_res = utils.t_tests(mat_proc.iloc[:, :-1], mat_proc["Group"], "fdr_bh")
-    DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+    DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].dropna().tolist()
     mat = mat.T
     DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
     background_KEGG = mat['KEGG'].dropna().tolist()
