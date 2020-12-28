@@ -8,13 +8,15 @@ import numpy as np
 
 # Import the relevant datasets
 DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data()
-DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data()
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Reactome")
 DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
-DEM_brown, background_brown, mat_brown = process_datasets.brown_data()
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Reactome")
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
 
-# Import pathway sets
+# Import Reactome datasets
+
+# Import KEGG pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
 KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
 KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
@@ -22,19 +24,33 @@ all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
+# Import Reactome pathway sets
+Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
+Reactome_human_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("HSA")]
+Reactome_eco_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("ECO")]
+Reactome_mouse_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("MMU")]
+all_reactome_human_bg = list(set([x for x in Reactome_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
+all_reactome_eco_bg = list(set([x for x in Reactome_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
+all_reactome_mouse_bg = list(set([x for x in Reactome_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
             "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
             "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
             "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
             "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
 
-def plot_log_pvalues():
+datasets_reactome = {"Yamada": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
+                     "Brown": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg]}
+
+def plot_log_pvalues(db="KEGG"):
+    d_sets = datasets
+    if db == "Reactome":
+        d_sets = datasets_reactome
     plt_dict = {}
-    for i in datasets.keys():
-        ora_res = utils.over_representation_analysis(datasets[i][0], datasets[i][1], datasets[i][2])
-        ora_res_all = utils.over_representation_analysis(datasets[i][0], datasets[i][3], datasets[i][2])
+    for i in d_sets.keys():
+        ora_res = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], d_sets[i][2])
+        ora_res_all = utils.over_representation_analysis(d_sets[i][0], d_sets[i][3], d_sets[i][2])
 
         intersect = (set(ora_res["Pathway_ID"].tolist()) & set(ora_res_all["Pathway_ID"].tolist()))
         ora_res_all = ora_res_all[ora_res_all["Pathway_ID"].isin(intersect)]
@@ -80,7 +96,7 @@ def plot_log_pvalues():
     # plt.savefig("datasets_log_p_subplots.png", dpi = 300)
     # plt.show()
 
-# plot_log_pvalues()
+plot_log_pvalues(db="Reactome")
 
 def plot_grouped_stacked_bar():
     dataframes = []

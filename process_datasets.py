@@ -2,10 +2,13 @@ import pandas as pd
 import numpy as np
 import utils
 import re
+from bioservices import *
+
+kegg_db = KEGG(verbose=False)
 
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
-def yamada_data():
+def yamada_data(db="KEGG"):
     data = pd.read_excel("../Yamada/Yamada.xlsx", index_col=0, header=0).T
     data = data.rename(columns={'Group': 'disease'})
     sample_disease_dict = dict(zip(data.index, data['disease']))
@@ -38,14 +41,27 @@ def yamada_data():
     data_proc = utils.data_processing(df, 0, 5)
     data_proc["Group"] = data_proc.index.map(CRC_or_healthy_dict)
     data_proc = data_proc[data_proc.Group != "Null"]
+
+    if db == "Reactome":
+        map_kegg_chebi = kegg_db.conv("chebi", "compound")
+        KEGG2Reactome = dict.fromkeys(data_proc.columns.tolist()[:-1])
+        for cpd in KEGG2Reactome.keys():
+            chebiID = map_kegg_chebi['cpd:' + cpd]
+            KEGG2Reactome[cpd] = chebiID[6:]
+        data_proc = data_proc.rename(columns=KEGG2Reactome)
+
     ttest_res = utils.t_tests(data_proc.iloc[:, :-1], data_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background = data_proc.iloc[:, :-1].columns.tolist()
+
     return DEM, background, data_proc
 
-def brown_data():
+def brown_data(db="KEGG"):
     mat = pd.read_excel("../Brown_mouse_diet/abundance.xlsx", index_col=0, header=1).T
-
+    mapping = dict(zip(mat.columns.tolist(), mat.loc["KEGG", :].tolist()))
+    mat = mat.rename(columns=mapping)
+    mat = mat.loc[:, mat.columns.notnull()]
+    mat = mat.loc[:, ~mat.columns.duplicated()]
     metadata = pd.read_csv("../Brown_mouse_diet/s_metabolon.txt", sep="\t")
     sample_name = [i[0:10] for i in metadata["Sample Name"]]
     diet = metadata["Factor Value[Genotype]"].tolist()
@@ -53,18 +69,23 @@ def brown_data():
     mat_proc = utils.data_processing(mat, firstrow=6, firstcol=1)
     mat_proc["Group"] = mat_proc.index.map(metadata_dict)
 
+    if db == "Reactome":
+        map_kegg_chebi = kegg_db.conv("chebi", "compound")
+        KEGG2Reactome = dict.fromkeys(mat_proc.columns.tolist()[:-1])
+        for cpd in KEGG2Reactome.keys():
+            try:
+                chebiID = map_kegg_chebi['cpd:' + cpd]
+                KEGG2Reactome[cpd] = chebiID[6:]
+            except KeyError:
+                KEGG2Reactome[cpd] = np.nan
+        mat_proc = mat_proc.rename(columns=KEGG2Reactome)
+        mat_proc = mat_proc.loc[:, mat_proc.columns.notnull()]
+
     ttest_res = utils.t_tests(mat_proc.iloc[:, :-1], mat_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].dropna().tolist()
-    mat = mat.T
-    DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
-    background_KEGG = mat['KEGG'].dropna().tolist()
+    background = mat_proc.columns.tolist()[:-1]
+    return DEM, background, mat_proc
 
-    # Return KEGG matrix
-    KEGG_dict = dict(zip(mat.index.tolist(), mat['KEGG'].tolist()))
-    mat_KEGG = mat_proc.rename(columns=KEGG_dict)
-    mat_KEGG = mat_KEGG.loc[:, mat_KEGG.columns.notnull()]
-    mat_KEGG = mat_KEGG.loc[:, ~mat_KEGG.columns.duplicated()]
-    return DEM_KEGG_id, background_KEGG, mat_KEGG
 
 def stevens_data():
     md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")

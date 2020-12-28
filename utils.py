@@ -160,6 +160,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
                 pathway_names_with_compounds.append(pathway_dict[pathway])
                 contingency_table = np.array([[DEM_in_pathway, compound_in_pathway_not_DEM],
                                               [DEM_not_in_pathway, compound_not_in_pathway_not_DEM]])
+
                 # Run right tailed Fisher's exact test
                 oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
                 pvalues.append(pvalue)
