@@ -58,29 +58,29 @@ def plot_log_pvalues():
     ax.axhline(y=1, linewidth=1, color='black',linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black',linestyle='--')
     plt.show()
+    #
+    # fig, ax = plt.subplots(3,2)
+    # l = list(plt_dict.keys())
+    # ax = ax.flatten()
+    # colours = sns.color_palette("muted")
+    # for i in range(0, 6):
+    #     plt.sca(ax[i])
+    #     sns.regplot(x=plt_dict[l[i]][0], y=plt_dict[l[i]][1],
+    #                  ci=None,
+    #                  scatter_kws={'s': 5}, color=colours[i])
+    #     lims = [
+    #         np.min([plt.xlim(), plt.ylim()]),  # min of both axes
+    #         np.max([plt.xlim(), plt.ylim()]),  # max of both axes
+    #     ]
+    #
+    #     # now plot both limits against eachother
+    #     plt.plot(lims, lims, 'k-', alpha=0.75, zorder=0, linestyle=':', color='black')
+    #     plt.title(l[i])
+    # plt.tight_layout()
+    # plt.savefig("datasets_log_p_subplots.png", dpi = 300)
+    # plt.show()
 
-    fig, ax = plt.subplots(3,2)
-    l = list(plt_dict.keys())
-    ax = ax.flatten()
-    colours = sns.color_palette("muted")
-    for i in range(0, 6):
-        plt.sca(ax[i])
-        sns.regplot(x=plt_dict[l[i]][0], y=plt_dict[l[i]][1],
-                     ci=None,
-                     scatter_kws={'s': 5}, color=colours[i])
-        lims = [
-            np.min([plt.xlim(), plt.ylim()]),  # min of both axes
-            np.max([plt.xlim(), plt.ylim()]),  # max of both axes
-        ]
-
-        # now plot both limits against eachother
-        plt.plot(lims, lims, 'k-', alpha=0.75, zorder=0, linestyle=':', color='black')
-        plt.title(l[i])
-    plt.tight_layout()
-    plt.savefig("datasets_log_p_subplots.png", dpi = 300)
-    plt.show()
-
-plot_log_pvalues()
+# plot_log_pvalues()
 
 def plot_grouped_stacked_bar():
     dataframes = []
@@ -130,13 +130,13 @@ def plot_grouped_stacked_bar():
 
 # Reducing background set
 def reduce_background_set():
-    percentage_reductions = [i for i in range(100, 0, -10)]
+    percentage_reductions = [i for i in range(100, 45, -5)]
 
     results_lists = []
     for d in datasets.keys():
         print(d)
         for i in percentage_reductions:
-            res = utils.reduce_background_list_ora(datasets[d][1], i, datasets[d][0], datasets[d][2])
+            res = utils.reduce_background_list_ora(datasets[d][1], i, datasets[d][0], datasets[d][2], keep_DEM=True)
             results_lists.append([d, i] + res)
 
     res_df = pd.DataFrame(results_lists,
@@ -156,7 +156,7 @@ def reduce_background_set():
                      yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
                      label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
     # plt.title("Number of pathways with P-values < 0.1 in \n response to varying background list size", fontsize=14)
-    plt.xlim(100, 10)
+    plt.xlim(100, 50)
     # plt.legend()
     plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
     plt.subplots_adjust(right=0.7)
@@ -164,7 +164,7 @@ def reduce_background_set():
     plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
     # plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
     plt.xlabel("Percentage of original background list")
-    # plt.savefig("background_list_reduction_proportion.png", dpi=300)
+    plt.savefig("background_list_reduction_proportion_noDEMremoval.png", dpi=300)
     plt.show()
 
 # reduce_background_set()

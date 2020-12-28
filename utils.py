@@ -116,9 +116,14 @@ def t_tests(matrix, classes, multiple_correction_method):
     return results
 
 def over_representation_analysis(DEM_list, background_list, pathways_df):
-    # analyse each pathway
+    """
+    Function for over representation analysis
+    :param DEM_list: List of differentially exprssed metabolite IDENTIFIERS
+    :param background_list: background list of IDENTIFIERS
+    :param pathways_df: pathway dataframe containing compound identifiers
+    :return: DataFrame of ORA results for each pathway, p-value, q-value, hits ratio
+    """
     KEGG_pathways = pathways_df.dropna(axis=0, how='all', subset=pathways_df.columns.tolist()[1:])
-
     pathways = KEGG_pathways.index.tolist()
     pathway_names = KEGG_pathways["Pathway_name"].tolist()
     pathway_dict = dict(zip(pathways, pathway_names))
@@ -129,17 +134,24 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
     pvalues = []
     pathway_ratio = []
     for pathway in pathways:
+        # perform ORA for each pathway
         pathway_compounds = KEGG_pathways.loc[pathway, :].tolist()
         pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
         if not pathway_compounds or len(pathway_compounds) < 3:
+            # ignore pathway if contains no compounds or has less than 3 compounds
             continue
         else:
-            DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds)) #k: compounds in DEM list AND pathway
-            DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds)) #K: compounds in DEM list not in pathway
-            compound_in_pathway_not_DEM = len(set(np.setdiff1d(background_list, DEM_list)) & set(pathway_compounds)) #compounds present in bg set and pathway
-            compound_not_in_pathway_not_DEM = len(np.setdiff1d(np.setdiff1d(background_list, DEM_list), pathway_compounds)) #compounds not present in pathway
+            DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
+            # k: compounds in DEM list AND pathway
+            DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds))
+            # K: compounds in DEM list not in pathway
+            compound_in_pathway_not_DEM = len(set(np.setdiff1d(background_list, DEM_list)) & set(pathway_compounds))
+            # compounds present in bg set and pathway
+            compound_not_in_pathway_not_DEM = len(np.setdiff1d(np.setdiff1d(background_list, DEM_list), pathway_compounds))
+            # compounds in background list not present in pathway
 
             if (DEM_in_pathway and compound_in_pathway_not_DEM) == 0:
+                # ignore pathway if there are no DEM/background list compounds in that pathway
                 continue
             else:
                 # Create 2 by 2 contingency table
@@ -151,7 +163,6 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
                 # Run right tailed Fisher's exact test
                 oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
                 pvalues.append(pvalue)
-    # padj = sm.stats.multipletests(pvalues, 0.05, method="fdr_bh")
     try:
         padj = sm.stats.multipletests(pvalues, 0.05, method="fdr_bh")
         results = pd.DataFrame(zip(pathways_with_compounds, pathway_names_with_compounds, pathway_ratio, pvalues, padj[1]),
@@ -162,9 +173,6 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
                            columns=["Pathway_ID", "Pathway_name", "Hits", "P-value", "P-adjust"])
     return results
 
-    # results = pd.DataFrame(zip(pathways_with_compounds, pathway_names_with_compounds, pvalues, padj[1]),
-    #                        columns=["Pathway_ID", "Pathway_name", "P-value", "P-adjust"])
-    # return results
 
 def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_df, keep_DEM=False):
     """

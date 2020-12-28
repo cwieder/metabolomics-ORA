@@ -68,6 +68,7 @@ def random_misidentification():
     plt.savefig("metabolite_random_misidentification.png", dpi=300)
     plt.show()
 
+random_misidentification()
 
 def TPR_heatmap(TPR=False, FPR=False):
     """
@@ -194,7 +195,7 @@ def misidentification_mass_plot():
     plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
     plt.show()
 
-# misidentification_mass_plot()
+misidentification_mass_plot()
 
 KEGG_compounds_formula = pd.read_csv("KEGG_compound_formulae.csv", index_col=0)
 
@@ -234,4 +235,4 @@ def misidentification_formula_plot():
     plt.savefig("metabolite_misidentification_by_formula.png", dpi=300)
     plt.show()
 
-# misidentification_formula_plot()
+misidentification_formula_plot()
