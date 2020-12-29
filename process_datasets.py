@@ -3,6 +3,7 @@ import numpy as np
 import utils
 import re
 from bioservices import *
+import pickle
 
 kegg_db = KEGG(verbose=False)
 
@@ -36,7 +37,6 @@ def yamada_data(db="KEGG"):
     data.insert(1, "Group", CRC_or_healthy)
 
     data = data.iloc[:, ~data.columns.duplicated()]
-    df = data[data.disease != "Null"]
     df = data[data.disease != "Null"]
     data_proc = utils.data_processing(df, 0, 5)
     data_proc["Group"] = data_proc.index.map(CRC_or_healthy_dict)
@@ -126,7 +126,7 @@ def stevens_data():
     mat_KEGG = mat_KEGG.loc[:, ~mat_KEGG.columns.duplicated()]
     return DEM_KEGG_id, stevens_background_list, mat_KEGG
 
-def zamboni_data(knockout):
+def zamboni_data(knockout, db="KEGG"):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
     p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
 
@@ -161,6 +161,25 @@ def zamboni_data(knockout):
                 annotations.append(annos[-2])
         annotations_pos[ion_index] = annotations
 
+    with open('zamboni_pos_annotation_dict.pickle', 'wb') as handle:
+        pickle.dump(a, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    # convert to CHEBI for Reactome
+    if db == "Reactome":
+        for k, v in annotations_neg.items():
+            if v:
+                map_kegg_chebi = kegg_db.conv("chebi", "compound")
+                chebi_ids = []
+                for cpd in v:
+                    try:
+                        chebiID = map_kegg_chebi['cpd:' + cpd]
+                        chebi_ids.append(chebiID)
+                    except KeyError:
+                        chebi_ids.append(np.nan)
+                annotations_neg[k] = chebi_ids
+                print(chebi_ids)
+    print(annotations_neg)
+    quit()
     strain_DA_compounds = dict.fromkeys(n_zscore.columns)
 
     for strain in strain_DA_compounds.keys():
@@ -214,19 +233,34 @@ def zamboni_data(knockout):
 
     return DEM, background_list_all_annotations, mat
 
-def auwerx_data():
+def auwerx_data(db="KEGG"):
     mat = pd.read_excel("../mitochondria/abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
     mat = mat.iloc[6:, :]
     mat = mat.loc[:, ~mat.columns.duplicated(keep='first')]
+    mat = mat.loc[:, mat.columns.notnull()]
     groups = [i.split(".", 1)[0] for i in mat.index.tolist()]
     mat['Group'] = groups
     mat_selected_groups = mat.loc[mat['Group'].isin(['Acti', 'FCCP'])]
     matrix_proc = utils.data_processing(mat_selected_groups.iloc[:, :-1], 0, 0)
     matrix_proc_copy = matrix_proc.copy()
     matrix_proc_copy['Group'] = mat_selected_groups['Group']
-    ttest_res = utils.t_tests(matrix_proc, mat_selected_groups["Group"], "fdr_bh")
+
+    if db == "Reactome":
+        map_kegg_chebi = kegg_db.conv("chebi", "compound")
+        KEGG2Reactome = dict.fromkeys(matrix_proc_copy.columns.tolist()[:-1])
+        for cpd in KEGG2Reactome.keys():
+            try:
+                chebiID = map_kegg_chebi['cpd:' + str(cpd)]
+                KEGG2Reactome[cpd] = chebiID[6:]
+            except KeyError:
+                KEGG2Reactome[cpd] = np.nan
+        matrix_proc_copy = matrix_proc_copy.rename(columns=KEGG2Reactome)
+        matrix_proc_copy = matrix_proc_copy.loc[:, matrix_proc_copy.columns.notnull()]
+
+    ttest_res = utils.t_tests(matrix_proc_copy.iloc[:, :-1], matrix_proc_copy["Group"], "fdr_bh")
     DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-    background_list = matrix_proc.columns.tolist()
+    background_list = matrix_proc_copy.columns.tolist()
 
     return DA_metabolites, background_list, matrix_proc_copy
 
+zamboni_data("dcuS", db="Reactome")
