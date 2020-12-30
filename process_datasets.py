@@ -135,51 +135,63 @@ def zamboni_data(knockout, db="KEGG"):
     p_zscore = p_zscore[p_zscore.index.notnull()]
 
     # get all possible annotations for each ion
-    putative_annotations = pd.read_excel("../Zamboni/annotations_EV1.xlsx", sheet_name="Table EV1B")
+    # putative_annotations = pd.read_excel("../Zamboni/annotations_EV1.xlsx", sheet_name="Table EV1B")
+    #
+    # neg_putative_annotations = putative_annotations[putative_annotations['Ionization Mode'] == "neg"]
+    # pos_putative_annotations = putative_annotations[putative_annotations['Ionization Mode'] == "pos"]
+    # annotations_neg = dict.fromkeys(neg_putative_annotations["Ion Index"])
+    # annotations_pos = dict.fromkeys(pos_putative_annotations["Ion Index"])
+    # for row in neg_putative_annotations.itertuples():
+    #     annotation_cols = row[4:]
+    #     ion_index = row[2]
+    #     annotations = []
+    #     for i in annotation_cols:
+    #         if not pd.isna(i):
+    #             annos = i.split()
+    #             annotations.append(annos[-2])
+    #     annotations_neg[ion_index] = annotations
+    #
+    # for row in pos_putative_annotations.itertuples():
+    #     annotation_cols = row[4:]
+    #     ion_index = row[2]
+    #     annotations = []
+    #     for i in annotation_cols:
+    #         if not pd.isna(i):
+    #             annos = i.split()
+    #             annotations.append(annos[-2])
+    #     annotations_pos[ion_index] = annotations
 
-    neg_putative_annotations = putative_annotations[putative_annotations['Ionization Mode'] == "neg"]
-    pos_putative_annotations = putative_annotations[putative_annotations['Ionization Mode'] == "pos"]
-    annotations_neg = dict.fromkeys(neg_putative_annotations["Ion Index"])
-    annotations_pos = dict.fromkeys(pos_putative_annotations["Ion Index"])
-    for row in neg_putative_annotations.itertuples():
-        annotation_cols = row[4:]
-        ion_index = row[2]
-        annotations = []
-        for i in annotation_cols:
-            if not pd.isna(i):
-                annos = i.split()
-                annotations.append(annos[-2])
-        annotations_neg[ion_index] = annotations
+    with open('zamboni_pos_annotation_dict.pickle', 'rb') as handle:
+        annotations_pos = pickle.load(handle)
 
-    for row in pos_putative_annotations.itertuples():
-        annotation_cols = row[4:]
-        ion_index = row[2]
-        annotations = []
-        for i in annotation_cols:
-            if not pd.isna(i):
-                annos = i.split()
-                annotations.append(annos[-2])
-        annotations_pos[ion_index] = annotations
-
-    with open('zamboni_pos_annotation_dict.pickle', 'wb') as handle:
-        pickle.dump(a, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open('zamboni_neg_annotation_dict.pickle', 'rb') as handle:
+        annotations_neg = pickle.load(handle)
 
     # convert to CHEBI for Reactome
     if db == "Reactome":
-        for k, v in annotations_neg.items():
-            if v:
-                map_kegg_chebi = kegg_db.conv("chebi", "compound")
-                chebi_ids = []
-                for cpd in v:
-                    try:
-                        chebiID = map_kegg_chebi['cpd:' + cpd]
-                        chebi_ids.append(chebiID)
-                    except KeyError:
-                        chebi_ids.append(np.nan)
-                annotations_neg[k] = chebi_ids
-                print(chebi_ids)
-    print(annotations_neg)
-    quit()
+        # kegg_id_neg = sorted({x for v in annotations_neg.values() for x in v})
+        # kegg_id_pos = sorted({x for v in annotations_pos.values() for x in v})
+        # kegg_id = list(set(kegg_id_pos + kegg_id_neg))
+        # mapping_dict = dict.fromkeys(kegg_id)
+        # print(len(kegg_id))
+        #
+        # for num, cpd in enumerate(mapping_dict.keys()):
+        #     print(num, cpd)
+        #     map_kegg_chebi = kegg_db.conv("chebi", "compound")
+        #     try:
+        #         chebiID = map_kegg_chebi['cpd:' + cpd]
+        #         mapping_dict[cpd] = chebiID
+        #     except KeyError:
+        #         mapping_dict[cpd] = np.nan
+        # print(mapping_dict)
+        # with open('zamboni_CHEBI_mapping.pickle', 'wb') as handle:
+        #     pickle.dump(mapping_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        with open('zamboni_CHEBI_mapping.pickle', 'rb') as handle:
+            mapping_dict = pickle.load(handle)
+            annotations_neg = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_neg.items()}
+            annotations_pos = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_pos.items()}
+
     strain_DA_compounds = dict.fromkeys(n_zscore.columns)
 
     for strain in strain_DA_compounds.keys():
@@ -199,11 +211,12 @@ def zamboni_data(knockout, db="KEGG"):
                 DA_metabolites.append(annotations_pos[items[0]])
         DA_KEGG = [j for i in DA_metabolites for j in i] # filter out only annotated compounds
         strain_DA_compounds[strain] += DA_KEGG
-    background_list_all_annotations = list(set(sum(annotations_neg.values(), []) + sum(annotations_pos.values(), [])))
-    DEM = list(set(strain_DA_compounds[knockout]))
+    background_list_all_annotations = list(filter(None, list(set(sum(annotations_neg.values(), []) + sum(annotations_pos.values(), [])))))
+    DEM = list(filter(None, list(set(strain_DA_compounds[knockout]))))
 
     # return strain matrix with all annotations
     empty_anno_pos = [k for k, v in annotations_pos.items() if not v]
+
     strain_pos_all = p_zscore.drop(empty_anno_pos).loc[:, knockout]
     pos_rows = []
     for ion, val in strain_pos_all.items():

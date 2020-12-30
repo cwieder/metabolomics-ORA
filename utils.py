@@ -1,7 +1,5 @@
 # Tools for pathway analysis in metabolomics
 
-# TODO: make requirements.txt
-
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
