@@ -11,8 +11,8 @@ DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Rea
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Reactome")
 DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data()
 DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Reactome")
-DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM")
-DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Reactome")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
 
 # Import Reactome datasets
 
@@ -41,7 +41,10 @@ datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_K
 
 datasets_reactome = {"Auwerx": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
                      "Yamada": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
-                     "Brown": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg]}
+                     "Brown": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg],
+                     "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
+                     "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
+
 
 def plot_log_pvalues(db="KEGG"):
     d_sets = datasets
@@ -63,16 +66,16 @@ def plot_log_pvalues(db="KEGG"):
     for i in plt_dict.keys():
         ax = sns.regplot(x=plt_dict[i][0], y=plt_dict[i][1],
                          ci=95,
-                         scatter_kws={'s':5})
+                         scatter_kws={'s': 5})
     ax.set_xlabel("Experimental background list (-log10 P-value)",
                   fontsize=12)
     ax.set_ylabel("All KEGG compounds (organism-specific) (-log10 P-value)",
                   fontsize=12)
-    ax.set(ylim=(0, 10), xlim=(0, 10))
+    ax.set(ylim=(0, 5), xlim=(0, 5))
     ax.legend(plt_dict.keys())
     ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
-    ax.axhline(y=1, linewidth=1, color='black',linestyle='--')
-    ax.axvline(x=1, linewidth=1, color='black',linestyle='--')
+    ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
+    ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
     plt.show()
     #
     # fig, ax = plt.subplots(3,2)
@@ -96,7 +99,9 @@ def plot_log_pvalues(db="KEGG"):
     # plt.savefig("datasets_log_p_subplots.png", dpi = 300)
     # plt.show()
 
+
 plot_log_pvalues(db="Reactome")
+
 
 def plot_grouped_stacked_bar():
     dataframes = []
@@ -109,13 +114,13 @@ def plot_grouped_stacked_bar():
         n_q_less_01_all = len(ora_res_all[ora_res_all["P-adjust"] < 0.1]["P-adjust"].tolist())
         df = pd.DataFrame([[n_p_less_01, n_q_less_01], [n_p_less_01_all, n_q_less_01_all]],
                           index=["Specified background list", "All KEGG compounds"], columns=["P", "Q"])
-        df["Name"] = "df"+i
+        df["Name"] = "df" + i
         dataframes.append(df)
 
     dfall = pd.concat([pd.melt(i.reset_index(),
-                               id_vars=["Name", "index"]) # transform in tidy format each df
+                               id_vars=["Name", "index"])  # transform in tidy format each df
                        for i in dataframes],
-                       ignore_index=True)
+                      ignore_index=True)
 
     dfall.set_index(["Name", "index", "variable"], inplace=True)
     dfall["vcs"] = dfall.groupby(level=["Name", "index"]).cumsum()
@@ -127,11 +132,11 @@ def plot_grouped_stacked_bar():
                          x="index",
                          y="vcs",
                          hue="Name",
-                         zorder=-i, # so first bars stay on top
+                         zorder=-i,  # so first bars stay on top
                          edgecolor="k")
     ax.set_xlabel('Background list used in ORA', fontsize=14)
     ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)',
-           fontsize=14)
+                  fontsize=14)
     labels = ["Auwerx", "Yamada", "Stevens", "Brown", "Zamboni (yfgM)", "Zamboni (dcuS)"]
     h, l = ax.get_legend_handles_labels()
     ax.legend(h[0:6], labels, title="Dataset")
@@ -141,6 +146,7 @@ def plot_grouped_stacked_bar():
         bars[i].set_hatch('//')
     # plt.savefig("all_vs_experimental_barchart.png", dpi=300)
     plt.show()
+
 
 # plot_grouped_stacked_bar()
 
@@ -170,7 +176,7 @@ def reduce_background_set():
         plt.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
                      simulation_res[simulation_res["Dataset"] == i]['mean_proportion_p_vals'],
                      yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
-                     label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
+                     label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
     # plt.title("Number of pathways with P-values < 0.1 in \n response to varying background list size", fontsize=14)
     plt.xlim(100, 50)
     # plt.legend()

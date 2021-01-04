@@ -68,7 +68,7 @@ def random_misidentification():
     plt.savefig("metabolite_random_misidentification.png", dpi=300)
     plt.show()
 
-random_misidentification()
+# random_misidentification()
 
 def TPR_heatmap(TPR=False, FPR=False):
     """
@@ -148,13 +148,13 @@ def TPR_heatmap(TPR=False, FPR=False):
     plt.savefig("random_misidentification_heatmap.png", dpi=300)
     plt.show()
 
-TPR_heatmap(TPR=True)
+# TPR_heatmap(TPR=True)
 
 # Misidentification by mass
 # Obtained exact masses for KEGG compounds
 # Replace with a compound in a similar mass window
 
-KEGG_compounds_masses = pd.read_csv("KEGG_compounds_exact_mass.csv", index_col=0)
+KEGG_compounds_masses = pd.read_csv("KEGG_compounds_masses_estimated.csv", names=["compound", "formula", "mass"])
 # Filter for human compounds only
 # print(len(np.setdiff1d(all_KEGG_human_bg, KEGG_compounds_masses.index.tolist())))
 
@@ -192,12 +192,10 @@ def misidentification_mass_plot():
     plt.legend()
     plt.ylabel("Mean number of pathways significant at P < 0.1")
     plt.xlabel("Percentage of metabolites misidentified")
-    plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
+    # plt.savefig("metabolite_misidentification_by_mass.png", dpi=300)
     plt.show()
 
 misidentification_mass_plot()
-
-KEGG_compounds_formula = pd.read_csv("KEGG_compound_formulae.csv", index_col=0)
 
 def misidentification_formula_plot():
     results_lists = []
@@ -206,13 +204,13 @@ def misidentification_formula_plot():
         if d.startswith("Zamboni"):
             for i in [i for i in range(0, 6, 1)]:
                 print(i)
-                res = utils.misidentify_metabolites_by_formula(i, datasets[d][4], datasets[d][2], KEGG_compounds_formula,
+                res = utils.misidentify_metabolites_by_formula(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
                                                 datasets[d][3], zamboni=True)
                 results_lists.append([d, i] + res)
         else:
             for i in datasets[d][6]:
                 print(i)
-                res = utils.misidentify_metabolites_by_formula(i, datasets[d][4], datasets[d][2], KEGG_compounds_formula,
+                res = utils.misidentify_metabolites_by_formula(i, datasets[d][4], datasets[d][2], KEGG_compounds_masses,
                                                             datasets[d][3], zamboni=False)
                 results_lists.append([d, i] + res)
 
@@ -235,4 +233,4 @@ def misidentification_formula_plot():
     plt.savefig("metabolite_misidentification_by_formula.png", dpi=300)
     plt.show()
 
-misidentification_formula_plot()
+# misidentification_formula_plot()
