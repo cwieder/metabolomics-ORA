@@ -87,7 +87,7 @@ def brown_data(db="KEGG"):
     return DEM, background, mat_proc
 
 
-def stevens_data():
+def stevens_data(db="KEGG"):
     md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
     metadata_list = list(zip(md_raw['Factor Value[CurrentPMH]'], md_raw['Factor Value[Gender]'],
                              md_raw['Factor Value[AgeAtBloodDraw]'],
@@ -104,27 +104,32 @@ def stevens_data():
     mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0)
     mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
     stevens_matrix_proc = utils.data_processing(mat_nonusers_estrogen.T, 8, 0)
-    stevens_matrix_proc = stevens_matrix_proc.loc[:,~stevens_matrix_proc.columns.duplicated()]
     stevens_matrix_proc["Group"] = stevens_matrix_proc.index.map(sample_status_dict)
+    mapping_dict = dict(zip(mat.index, mat['KEGG']))
+    stevens_matrix_proc = stevens_matrix_proc.rename(columns=mapping_dict)
+
+    if db == "Reactome":
+        map_kegg_chebi = kegg_db.conv("chebi", "compound")
+        KEGG2Reactome = dict.fromkeys(stevens_matrix_proc.columns.tolist()[:-1])
+        for cpd in KEGG2Reactome.keys():
+            try:
+                chebiID = map_kegg_chebi['cpd:' + str(cpd)]
+                KEGG2Reactome[cpd] = chebiID[6:]
+            except KeyError:
+                KEGG2Reactome[cpd] = np.nan
+        stevens_matrix_proc = stevens_matrix_proc.rename(columns=KEGG2Reactome)
+        stevens_matrix_proc = stevens_matrix_proc.loc[:, stevens_matrix_proc.columns.notnull()]
+
+    stevens_matrix_proc = stevens_matrix_proc.loc[:, stevens_matrix_proc.columns.notnull()]
+    stevens_matrix_proc = stevens_matrix_proc.loc[:, ~stevens_matrix_proc.columns.duplicated()]
+
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-
-    # Add back the metadata columns
-    mat.columns = mat.columns.str.replace(' ', '')
-    metadata_cols = ['KEGG', 'SampleHMDB_ID']
-    stevens_matrix_proc_annotated = stevens_matrix_proc.T.join(mat[metadata_cols])
     background_list = stevens_matrix_proc.columns.tolist()
 
-    DEM_KEGG_id = mat[mat.index.isin(DEM)]['KEGG'].tolist()
-    DEM_KEGG_id = [i for i in DEM_KEGG_id if str(i) != 'nan']
-    stevens_background_list = list(set(stevens_matrix_proc_annotated['KEGG'].dropna().tolist()))
+    return DEM, background_list, stevens_matrix_proc
 
-    # Return KEGG matrix
-    KEGG_dict = dict(zip(mat.index.tolist(), mat['KEGG'].tolist()))
-    mat_KEGG = stevens_matrix_proc.rename(columns=KEGG_dict)
-    mat_KEGG = mat_KEGG.loc[:, mat_KEGG.columns.notnull()]
-    mat_KEGG = mat_KEGG.loc[:, ~mat_KEGG.columns.duplicated()]
-    return DEM_KEGG_id, stevens_background_list, mat_KEGG
+stevens_data(db="Reactome")
 
 def zamboni_data(knockout, db="KEGG"):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
