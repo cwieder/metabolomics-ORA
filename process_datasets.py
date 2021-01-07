@@ -129,7 +129,6 @@ def stevens_data(db="KEGG"):
 
     return DEM, background_list, stevens_matrix_proc
 
-stevens_data(db="Reactome")
 
 def zamboni_data(knockout, db="KEGG"):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
@@ -258,7 +257,8 @@ def auwerx_data(db="KEGG"):
     mat = mat.loc[:, mat.columns.notnull()]
     groups = [i.split(".", 1)[0] for i in mat.index.tolist()]
     mat['Group'] = groups
-    mat_selected_groups = mat.loc[mat['Group'].isin(['Acti', 'FCCP'])]
+    print(mat['Group'])
+    mat_selected_groups = mat.loc[mat['Group'].isin(['Acti', 'Dox'])]
     matrix_proc = utils.data_processing(mat_selected_groups.iloc[:, :-1], 0, 0)
     matrix_proc_copy = matrix_proc.copy()
     matrix_proc_copy['Group'] = mat_selected_groups['Group']
@@ -274,11 +274,8 @@ def auwerx_data(db="KEGG"):
                 KEGG2Reactome[cpd] = np.nan
         matrix_proc_copy = matrix_proc_copy.rename(columns=KEGG2Reactome)
         matrix_proc_copy = matrix_proc_copy.loc[:, matrix_proc_copy.columns.notnull()]
-
     ttest_res = utils.t_tests(matrix_proc_copy.iloc[:, :-1], matrix_proc_copy["Group"], "fdr_bh")
     DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background_list = matrix_proc_copy.columns.tolist()
 
     return DA_metabolites, background_list, matrix_proc_copy
-
-zamboni_data("dcuS", db="Reactome")
