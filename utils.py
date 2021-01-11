@@ -296,8 +296,10 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
 
     p_vals = []
     q_vals = []
+    significant_pathways = []  # at P < 0.1
     masses = all_compound_masses.iloc[:, [0, 2]]
     KEGG_compounds_masses_organism = masses[masses.compound.isin(organism_bg)]
+    # Ensures replacement compounds are organism-specific
     KEGG_compounds_masses_organism = KEGG_compounds_masses_organism.set_index('compound')
     KEGG_compounds_masses_organism['mass'] = pd.to_numeric(KEGG_compounds_masses_organism['mass'],
                                                                                downcast="float")
@@ -320,7 +322,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 1):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -335,6 +337,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
             p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+            significant_pathways.append(ora_res[ora_res["P-value"] < 0.1]["Pathway_ID"].tolist())
     elif zamboni:
         metabolites = list(set(processed_matrix.columns.tolist()))
         print(len(metabolites))
@@ -352,7 +355,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
 
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 1):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -367,11 +370,12 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
             p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+            significant_pathways.append(ora_res[ora_res["P-value"] < 0.1]["Pathway_ID"].tolist())
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
     sd_p_signficant_paths = stats.sem(p_vals)
     sd_q_signficant_paths = stats.sem(q_vals)
-    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths, significant_pathways]
 
 def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df, all_cpd_formulas, organism_bg,
                                        zamboni=False):
@@ -389,6 +393,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
     print(len(KEGG_compounds_formula_organism))
     p_vals = []
     q_vals = []
+    significant_pathways = []  # at P < 0.1
 
     if not zamboni:
         mat_unannotated = processed_matrix.iloc[:, :-1]
@@ -420,6 +425,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
             ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
             p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+            significant_pathways.append(ora_res[ora_res["P-value"] < 0.1]["Pathway_ID"].tolist())
     elif zamboni:
         metabolites = list(set(processed_matrix.columns.tolist()))
         print(len(metabolites))
@@ -451,8 +457,9 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
             ora_res = over_representation_analysis(DEM, misidentified_matrix.columns.tolist(), pathway_df)
             p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
             q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+            significant_pathways.append(ora_res[ora_res["P-value"] < 0.1]["Pathway_ID"].tolist())
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
     sd_p_signficant_paths = stats.sem(p_vals)
     sd_q_signficant_paths = stats.sem(q_vals)
-    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths]
+    return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths, significant_pathways]

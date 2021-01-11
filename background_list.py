@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from matplotlib import gridspec
 
 # Import the relevant datasets # Import Reactome datasets
 DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Reactome")
@@ -46,11 +47,12 @@ datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_K
 
 datasets_reactome = {"Auwerx": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
                      "Yamada": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
-                     "Stevens": [DEM_stevens, background_stevens, Reactome_human_pathways, all_reactome_human_bg],
+                     # "Stevens": [DEM_stevens, background_stevens, Reactome_human_pathways, all_reactome_human_bg],
                      "Brown": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg],
                      "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
                      "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
 
+print("Data processing complete.")
 
 def plot_log_pvalues(db="KEGG"):
     d_sets = datasets
@@ -67,18 +69,15 @@ def plot_log_pvalues(db="KEGG"):
         ora_res_all_pvals = np.negative(np.log10(ora_res_all["P-value"].tolist()))
         plt_dict[i] = [ora_res_pvals, ora_res_all_pvals]
 
-    print(len([i for i in plt_dict["Auwerx"][0] if i > 1]))
-    print(len([i for i in plt_dict["Auwerx"][1] if i > 1]))
-
     plt.figure(figsize=(6, 6))
     sns.set_style("darkgrid")
     sns.set_palette("muted")
     for i in plt_dict.keys():
         x = plt_dict[i][0]
         y = plt_dict[i][1]
-        jittered_y = y + 0.1 * np.random.rand(len(y)) - 0.05
-        jittered_x = x + 0.1 * np.random.rand(len(x)) - 0.05
-        ax = sns.regplot(x=jittered_x, y=jittered_y,
+        # jittered_y = y + 0.1 * np.random.rand(len(y)) - 0.05
+        # jittered_x = x + 0.1 * np.random.rand(len(x)) - 0.05
+        ax = sns.regplot(x=x, y=y,
                          ci=95,
                          scatter_kws={'s': 3})
     ax.set_xlabel("Specified background list (-log10 P-value)",
@@ -91,6 +90,7 @@ def plot_log_pvalues(db="KEGG"):
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
     plt.title("Reactome")
+    plt.savefig("../Figures/logp_plot_Reactome.png", dpi=300)
     plt.show()
 
     # fig, ax = plt.subplots(3,2)
@@ -118,6 +118,7 @@ def plot_log_pvalues(db="KEGG"):
 # plot_log_pvalues(db="Reactome")
 
 def plot_grouped_stacked_bar(db="KEGG"):
+    print("begin plotting")
     dataframes = []
     d_sets = datasets
     if db == "Reactome":
@@ -149,6 +150,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
     dfall.reset_index(inplace=True)
     sns.set_style("dark")
     sns.set_palette("muted")
+    plt.figure(figsize=(7,5))
     for i, g in enumerate(dfall.groupby("variable")):
         ax = sns.barplot(data=g[1],
                          x="index",
@@ -156,64 +158,89 @@ def plot_grouped_stacked_bar(db="KEGG"):
                          hue="Name",
                          zorder=-i,  # so first bars stay on top
                          edgecolor="k")
-    ax.set_xlabel('Background list used in ORA', fontsize=14)
-    ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)',
-                  fontsize=14)
+    ax.set_xlabel('Background list used in ORA')
+    ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)')
     labels = ["Auwerx", "Yamada", "Stevens", "Brown", "Zamboni (yfgM)", "Zamboni (dcuS)"]
     h, l = ax.get_legend_handles_labels()
-    ax.legend(h[0:6], labels, title="Dataset")
+    plt.legend(h[0:6], labels, title="Dataset", bbox_to_anchor=(1.4, 1), loc="upper right")
     # Set hatches for q-values bars
+    plt.subplots_adjust(right=0.75)
     bars = ax.patches
     for i in range(12, 24, 1):
         bars[i].set_hatch('//')
-    plt.savefig("all_vs_experimental_barchart_Reactome.png", dpi=300)
-    plt.title("Reactome")
+    plt.title("Reactome", fontsize=14)
+    plt.tight_layout()
+    plt.savefig("../Figures/all_vs_experimental_barchart_Reactome.png", dpi=300)
     plt.show()
 
-
-plot_grouped_stacked_bar(db="Reactome")
+# plot_grouped_stacked_bar(db="Reactome")
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
-    percentage_reductions = [i for i in range(100, 45, -5)]
+    percentage_reductions_keep_DEM = [i for i in range(100, 45, -5)]
+    percentage_reductions = [i for i in range(100, 5, -5)]
     d_sets = datasets
     if db == "Reactome":
         d_sets = datasets_reactome
+    results_lists_keep_DEM = []
     results_lists = []
     for d in d_sets.keys():
         print(d)
         for i in percentage_reductions:
-            res = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=True)
+            res = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=False)
             results_lists.append([d, i] + res)
+        for i in percentage_reductions_keep_DEM:
+            res_keep_DEM = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=True)
+            results_lists_keep_DEM.append([d, i] + res_keep_DEM)
 
     res_df = pd.DataFrame(results_lists,
                           columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
                                    "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
                                    "q_std", "sd_proportion_p_vals"])
-    # res_df.to_csv("Background_reduction_simulation_keep_DEM.csv")
-
+    res_df_keep_DEM = pd.DataFrame(results_lists_keep_DEM,
+                          columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
+                                   "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
+                                   "q_std", "sd_proportion_p_vals"])
+    res_df_keep_DEM.to_csv("Background_reduction_simulation_keep_DEM.csv")
+    res_df.to_csv("Background_reduction_simulation.csv")
     # simulation_res = pd.read_csv("Background_reduction_simulation.csv")
+    # simulation_res_keep_DEM = pd.read_csv("Background_reduction_simulation_keep_DEM.csv")
     simulation_res = res_df
-    print(simulation_res.head)
-    plt.figure()
-    plt.style.use("seaborn")
-    for i in d_sets.keys():
-        plt.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
-                     simulation_res[simulation_res["Dataset"] == i]['mean_proportion_p_vals'],
-                     yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
-                     label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
-    # plt.title("Number of pathways with P-values < 0.1 in \n response to varying background list size", fontsize=14)
-    plt.xlim(100, 50)
-    # plt.legend()
-    plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-    plt.subplots_adjust(right=0.7)
-    # plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
-    # plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations", fontsize=14)
-    plt.xlabel("Percentage of original background list")
-    plt.savefig("background_list_reduction_proportion_noDEMremoval_Reactome.png", dpi=300)
-    plt.title("Reactome")
-    plt.show()
+    simulation_res_keep_DEM = res_df_keep_DEM
+    with plt.style.context('seaborn'):
+        fig = plt.figure(figsize=(10, 6))
+        gs = gridspec.GridSpec(1, 2, width_ratios=[3, 2])
+        ax1 = fig.add_subplot(gs[0])
+        ax2 = fig.add_subplot(gs[1], sharey=ax1)
+        ax1.set_title("Random background list reduction")
+        for i in d_sets.keys():
+            ax1.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
+                         simulation_res[simulation_res["Dataset"] == i]['mean_proportion_p_vals'],
+                         yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
+                         label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
+        ax1.set_xlim(100, 10)
+        ax2.set_title("No DA metabolite removal")
+        for i in d_sets.keys():
+            ax2.errorbar(simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['Percentage reduction'],
+                         simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['mean_proportion_p_vals'],
+                         yerr=simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['sd_proportion_p_vals'],
+                         label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
+        ax2.set_xlim(100, 50)
+        fig.suptitle("Reactome", fontsize=14)
+        handles, labels = ax1.get_legend_handles_labels()
+        # plt.subplots_adjust(right=0.7)
+        fig.add_subplot(111, frameon=False)
+        # hide tick and tick label of the big axes
+        plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
+        plt.grid(False)
 
-# reduce_background_set(db="Reactome")
+        plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
+        plt.xlabel("Percentage of original background list")
+        plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.tight_layout()
+        plt.savefig("background_list_reduction_proportion_Reactome.png", dpi=300)
+        plt.show()
+
+reduce_background_set(db="Reactome")
+
 # Mind the gap set
