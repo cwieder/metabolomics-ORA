@@ -257,7 +257,6 @@ def auwerx_data(db="KEGG"):
     mat = mat.loc[:, mat.columns.notnull()]
     groups = [i.split(".", 1)[0] for i in mat.index.tolist()]
     mat['Group'] = groups
-    print(mat['Group'])
     mat_selected_groups = mat.loc[mat['Group'].isin(['Acti', 'Dox'])] # Acti vs Dox
     matrix_proc = utils.data_processing(mat_selected_groups.iloc[:, :-1], 0, 0)
     matrix_proc_copy = matrix_proc.copy()

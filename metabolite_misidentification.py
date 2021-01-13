@@ -79,7 +79,7 @@ def random_misidentification(db="KEGG"):
                 results_lists.append([d, i] + res[:-1])
 
     res_df = pd.DataFrame(results_lists, columns=["Dataset", "Percentage misidentification", "n_p_less_0.1", "n_q_less_0.1", "p_std", "q_std"])
-    res_df.to_csv("Metabolite_misidentification_simulation_random_Reactome.csv")
+    # res_df.to_csv("Metabolite_misidentification_simulation_random_Reactome.csv")
 
     simulation_res = res_df
     plt.figure()
@@ -93,7 +93,7 @@ def random_misidentification(db="KEGG"):
     plt.legend()
     plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations")
     plt.xlabel("Percentage of metabolites misidentified")
-    plt.savefig("metabolite_random_misidentification_Reactome.png", dpi=300)
+    plt.savefig("metabolite_random_misidentification_Reactome2.png", dpi=300)
     plt.show()
 
 # random_misidentification(db="Reactome")
@@ -133,7 +133,7 @@ def TPR_heatmap(pg, fname, db="KEGG"):
                     number_common_paths = len([i for i in x if i in original_pathways])
                     fraction_pathways_TPR = number_common_paths/total_significant_paths
                     pathway_fractions_TPR.append(fraction_pathways_TPR)
-                    fraction_pathways_FPR = (total_significant_paths-number_common_paths)/total_significant_paths
+                    fraction_pathways_FPR = len([i for i in x if i not in original_pathways])/total_significant_paths
                     pathway_fractions_FPR.append(fraction_pathways_FPR)
                 avg_fraction_TPR = np.mean(pathway_fractions_TPR)
                 avg_fraction_FPR = np.mean(pathway_fractions_FPR)
@@ -153,7 +153,7 @@ def TPR_heatmap(pg, fname, db="KEGG"):
                     number_common_paths = len([i for i in x if i in original_pathways])
                     fraction_pathways_TPR = number_common_paths/total_significant_paths
                     pathway_fractions_TPR.append(fraction_pathways_TPR)
-                    fraction_pathways_FPR = (total_significant_paths-number_common_paths)/total_significant_paths
+                    fraction_pathways_FPR = len([i for i in x if i not in original_pathways])/total_significant_paths
                     pathway_fractions_FPR.append(fraction_pathways_FPR)
                 avg_fraction_TPR = np.mean(pathway_fractions_TPR)
                 avg_fraction_FPR = np.mean(pathway_fractions_FPR)
@@ -174,13 +174,16 @@ def TPR_heatmap(pg, fname, db="KEGG"):
     sns.heatmap(res_df_TPR, annot=True, cmap="mako", square=True)
     plt.subplot(122)
     plt.title('FPR')
-    sns.heatmap(res_df_FPR, annot=True, cmap="rocket", square=True)
+    sns.heatmap(res_df_FPR, annot=True, cmap="rocket_r", square=True)
     plt.subplots_adjust(bottom=0.28)
         # plt.ylabel("Percentage metabolite misidentification (%)")
     plt.savefig(fname, dpi=300)
     plt.show()
 
-TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_Reactome.png", db="Reactome")
+# TPR_heatmap(param_grid_heatmaps["random"], "formula_misidentification_heatmap_Reactome_new.png", db="Reactome")
+TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_Reactome_new.png", db="Reactome")
+TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_Reactome_new.png", db="Reactome")
+
 
 
 def misidentification_mass_plot(db="KEGG"):
@@ -225,7 +228,7 @@ def misidentification_mass_plot(db="KEGG"):
     # plt.savefig("metabolite_misidentification_by_mass_Reactome.png", dpi=300)
     plt.show()
 
-misidentification_mass_plot(db="KEGG")
+# misidentification_mass_plot(db="KEGG")
 
 def misidentification_formula_plot(db="KEGG"):
     d_sets = datasets

@@ -237,7 +237,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     p_vals = []
     q_vals = []
     significant_pathways = []  # at P < 0.1
-
+    print(str(len(organism_compounds)), "Reactome organism compounds")
     if zamboni == False:
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = mat_unannotated.columns.tolist()
@@ -248,6 +248,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
             # TODO: CHECK THAT ORGANISM COMPOUNDS CONTAIN THE RIGHT THINGS e.g. glycans? drugs? should be included?
             replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
+            print(replacement_dict)
             misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
 
             # Perform t-tests and ORA
@@ -267,6 +268,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
                                                                   [background_list + list(metabolites_to_replace)]), n_misidentified,
                                                      replace=False)
             replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
+            print(replacement_dict)
             misidentified_matrix = processed_matrix.rename(columns=replacement_dict)
             DEM = []
             for x in misidentified_matrix.T.itertuples():
@@ -322,7 +324,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
         print(len(misidentifiable_metabolites))
-        for i in range(0, 1):
+        for i in range(0, 100):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -355,7 +357,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
 
         print(len(misidentifiable_metabolites))
-        for i in range(0, 1):
+        for i in range(0, 100):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
