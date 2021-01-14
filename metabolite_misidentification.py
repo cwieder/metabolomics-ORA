@@ -8,19 +8,19 @@ import numpy as np
 import time
 
 # Import the relevant datasets
-DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Reactome")
-DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Reactome")
-# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Reactome")
-DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Reactome")
-DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Reactome")
-DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
+# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Reactome")
+# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Reactome")
+# # DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Reactome")
+# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Reactome")
+# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Reactome")
+# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
 
-# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
-# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
-# # DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
-# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
-# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
-# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
+# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
@@ -100,8 +100,8 @@ def random_misidentification(db="KEGG"):
 
 # Parameter grid for TPR/FPR heatmaps. Numbers correspond to indexes in datasets param grids.
 param_grid_heatmaps = {"random": [utils.misidentify_metabolites, 4, 3, 1, 2, [i for i in range(10, 70, 10)]],
-                       "mass": [utils.misidentify_metabolites_by_mass, 4, 2, 7, 3, [i for i in range(1, 6, 1)]],
-                       "formula": [utils.misidentify_metabolites_by_formula, 4, 2, 7, 3, [i for i in range(1, 5, 1)]]}
+                       "mass": [utils.misidentify_metabolites_by_mass, 4, 2, 7, 3, [i for i in range(1, 7, 1)]],
+                       "formula": [utils.misidentify_metabolites_by_formula, 4, 2, 7, 3, [i for i in range(1, 6, 1)]]}
 
 def TPR_heatmap(pg, fname, db="KEGG"):
     """
@@ -115,7 +115,7 @@ def TPR_heatmap(pg, fname, db="KEGG"):
         d_sets = datasets_reactome
     results_TPR = []
     results_FPR = []
-    for d in ["Auwerx", "Brown", "Zamboni (dcuS)", "Zamboni (yfgM)"]:
+    for d in ["Auwerx", "Brown", "Yamada", "Zamboni (dcuS)", "Zamboni (yfgM)"]:
         print(d)
         if d.startswith("Zamboni"):
             original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
@@ -180,9 +180,9 @@ def TPR_heatmap(pg, fname, db="KEGG"):
     plt.savefig(fname, dpi=300)
     plt.show()
 
-# TPR_heatmap(param_grid_heatmaps["random"], "formula_misidentification_heatmap_Reactome_new.png", db="Reactome")
-TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_Reactome_new.png", db="Reactome")
-TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_Reactome_new.png", db="Reactome")
+# TPR_heatmap(param_grid_heatmaps["random"], "random_misidentification_heatmap_KEGG_new.png", db="KEGG")
+# TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
+TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
 
 
 
