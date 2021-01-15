@@ -85,8 +85,6 @@ def vary_dam_size():
         annotations_neg = pickle.load(handle)
 
     for d in datasets.keys():
-        print(len(datasets[d][1]))
-        pass
         print(d)
         for p in proportion_of_bg:
             print(p)
