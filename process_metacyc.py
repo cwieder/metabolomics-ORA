@@ -2,9 +2,9 @@ import pandas as pd
 from itertools import groupby
 
 raw = pd.read_csv("All_pathways_of_H._sapiens.txt", sep="\t", index_col=0)
-
-print(raw.columns)
-pathway_compounds = dict.fromkeys(raw.index.tolist())
+pway_names = pd.read_csv("All_pathways_of_H._sapiens (2).txt", sep="\t", index_col=0)
+names = pway_names["Pathways"].tolist()
+pathway_compounds = dict.fromkeys(raw.index.tolist()) # dictionary of pathways and their compounds
 
 for i in raw.itertuples():
     cpds = i[2].split(" // ")
@@ -30,6 +30,10 @@ with open("../tier1/24.1/data/compounds.dat", "r", encoding='latin-1', newline="
                 field = field.split()
                 alt_compounds[cpd].append(field[3].replace('"', ''))
 
-# print(pathway_compounds)
-pathway_df = pd.DataFrame.from_dict(pathway_compounds, orient="index")
-print(pathway_df)
+print(pathway_compounds)
+# pathway_df = pd.DataFrame.from_dict(pathway_compounds, orient="index")
+# pathway_df.insert(loc=0, column="Pathway_name", value=names)
+# print(pathway_df)
+# pathway_df.to_csv("Metacyc_human_pathways.csv")
+
+# TODO map compounds to KEGG/HMDB

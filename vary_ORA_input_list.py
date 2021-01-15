@@ -72,22 +72,26 @@ def vary_dam_size():
     proportion_of_bg = [i for i in range(0, 85, 5)]
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
+
+    # Import files for zamboni data
+    n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
+    p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
+    # remove unannotated
+    n_zscore = n_zscore[n_zscore.index.notnull()]
+    p_zscore = p_zscore[p_zscore.index.notnull()]
+    with open('zamboni_pos_annotation_dict.pickle', 'rb') as handle:
+        annotations_pos = pickle.load(handle)
+    with open('zamboni_neg_annotation_dict.pickle', 'rb') as handle:
+        annotations_neg = pickle.load(handle)
+
     for d in datasets.keys():
+        print(len(datasets[d][1]))
+        pass
         print(d)
         for p in proportion_of_bg:
             print(p)
             if d.startswith("Zamboni"):
                 strain = d[d.find("(")+1:d.find(")")]
-                n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
-                p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
-                # remove unannotated
-                n_zscore = n_zscore[n_zscore.index.notnull()]
-                p_zscore = p_zscore[p_zscore.index.notnull()]
-                with open('zamboni_pos_annotation_dict.pickle', 'rb') as handle:
-                    annotations_pos = pickle.load(handle)
-                with open('zamboni_neg_annotation_dict.pickle', 'rb') as handle:
-                    annotations_neg = pickle.load(handle)
-
                 neg_col = n_zscore.loc[:, strain].to_frame(name="z-score")
                 neg_col["annotation"] = neg_col.index.map(annotations_neg)
                 pos_col = p_zscore.loc[:, strain].to_frame(name="z-score")
@@ -114,7 +118,7 @@ def vary_dam_size():
     res_df_FDR_BH = res_df[res_df["Multiple_correction_method"] == "fdr_bh"]
     res_df_Zamboni = res_df[res_df["Multiple_correction_method"] == "none"]
     with plt.style.context('seaborn'):
-        fig, ax1 = plt.subplots(1, 1)
+        fig, ax1 = plt.subplots(1, 1, figsize=(6, 8))
         plt.style.use("seaborn")
         cols = sns.color_palette("deep", 8)
 
