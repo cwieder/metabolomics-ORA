@@ -87,6 +87,6 @@ print(len(background_list), "background in KEGG")
 print(socie_mat_proc.shape)
 
 ORA_res = utils.over_representation_analysis(DEM_KEGG_id, background_list, KEGG_pathways)
-print(ORA_res[ORA_res['P-adjust'] < 0.2].count())
+print(ORA_res[ORA_res['P-value'] < 0.1].count())
 print(ORA_res)
-ORA_res.to_csv("../Socie/ORA_Socie_ttest_FDR.csv")
+# ORA_res.to_csv("../Socie/ORA_Socie_ttest_FDR.csv")

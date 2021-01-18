@@ -1,5 +1,6 @@
 import pandas as pd
 from itertools import groupby
+import pickle
 
 raw = pd.read_csv("All_pathways_of_H._sapiens.txt", sep="\t", index_col=0)
 pway_names = pd.read_csv("All_pathways_of_H._sapiens (2).txt", sep="\t", index_col=0)
@@ -30,10 +31,13 @@ with open("../tier1/24.1/data/compounds.dat", "r", encoding='latin-1', newline="
                 field = field.split()
                 alt_compounds[cpd].append(field[3].replace('"', ''))
 
-print(pathway_compounds)
+print(alt_compounds.keys())
+
+
 # pathway_df = pd.DataFrame.from_dict(pathway_compounds, orient="index")
 # pathway_df.insert(loc=0, column="Pathway_name", value=names)
 # print(pathway_df)
 # pathway_df.to_csv("Metacyc_human_pathways.csv")
 
-# TODO map compounds to KEGG/HMDB
+with open('MetaCyc_compound_mapping.pickle', 'wb') as handle:
+    pickle.dump(alt_compounds, handle, protocol=pickle.HIGHEST_PROTOCOL)

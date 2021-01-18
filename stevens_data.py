@@ -25,7 +25,7 @@ def stevens_data():
 
     # Get abundance matrix, transpose to n-samples by m-metabolites
     mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0)
-    mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
+    mat_nonusers_estrogen = mat.drop((replicate_samples + nonusers), axis=1)
     stevens_matrix_proc = utils.data_processing(mat_nonusers_estrogen.T, 8, 0)
     stevens_matrix_proc["Group"] = stevens_matrix_proc.index.map(sample_status_dict)
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")

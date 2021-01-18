@@ -16,7 +16,7 @@ data['Groups'] = labels
 #utils.plot_PCA(mat_proc, data.loc["C01":,"Groups"], "Hansbro COPD vs Healthy", 57)
 
 ttest_res = utils.t_tests(mat_proc, data.loc["C01":,"Groups"], "fdr_bh")
-DEM = ttest_res[ttest_res["P-adjust"] < 0.1]["Metabolite"].tolist()
+DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
 
 print(len(DEM), "Differential metabolites")
 # with open("../COPD/DEM.txt", "a") as infile:
@@ -35,4 +35,5 @@ print(len(KEGG_background), "Background mapping to KEGG")
 
 ora_res = utils.over_representation_analysis(DEM_KEGG, KEGG_background, KEGG_pathways)
 print(ora_res)
-ora_res.to_csv("../COPD/ORA.csv")
+print(len(ora_res[ora_res["P-value"] < 0.1]["P-adjust"].tolist()))
+# ora_res.to_csv("../COPD/ORA.csv")

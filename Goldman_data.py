@@ -11,6 +11,7 @@ import seaborn as sns
 import scipy.stats as stats
 import utils
 import pickle
+from bioservices import *
 
 goldman_mat = pd.read_excel("../Goldman_data/Goldman_metabolites.xlsx")
 print(goldman_mat.shape)
@@ -24,24 +25,33 @@ goldman_clin_data = pd.read_excel("../Goldman_data/Goldman_clinical_data.xlsx")
 
 # utils.plot_PCA(goldman_mat_proc, goldman_mat["Healthy donor sample or COVID19 sample"], "COVID-19 vs healthy")
 
-t_test_res = utils.t_tests(goldman_mat_proc, goldman_mat["Healthy donor sample or COVID19 sample"], "bonferroni")
+t_test_res = utils.t_tests(goldman_mat_proc, goldman_mat["Healthy donor sample or COVID19 sample"], "fdr_bh")
 t_test_res.to_csv("Goldman_ttest_res.csv")
 
 
 KEGG_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
 
 
-Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
-Reactome_human_ids = [i for i in Reactome_pathways.index if i.startswith("R-HSA")]
-Reactome_human = Reactome_pathways[Reactome_pathways.index.isin(Reactome_human_ids)]
+# Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
+# Reactome_human_ids = [i for i in Reactome_pathways.index if i.startswith("R-HSA")]
+# Reactome_human = Reactome_pathways[Reactome_pathways.index.isin(Reactome_human_ids)]
 
 name_map = pd.read_csv("../Goldman_data/name_map.csv", dtype=str)
 background_list = goldman_mat_proc.columns.tolist()
+compunds_count = 0
+k = KEGG(verbose=False)
+for i in background_list:
+    v = k.find("compound", i)
+    if v:
+        compunds_count += 1
+    print(v, compunds_count)
+quit()
+
 background_list_KEGG = name_map[name_map["Query"].isin(background_list)]['KEGG'].dropna().tolist()
 background_list_chEBI = name_map[name_map["Query"].isin(background_list)]['ChEBI'].dropna().tolist()
 
 print(len(background_list_KEGG), "in background list KEGG")
-DA_metabolites = t_test_res[t_test_res["P-adjust"] < 0.0000000000000001]["Metabolite"].tolist()
+DA_metabolites = t_test_res[t_test_res["P-adjust"] < 0.05]["Metabolite"].tolist()
 
 name_map[name_map["Query"].isin(background_list)]['KEGG'].dropna().to_csv("Goldman_background_KEGG.csv", index=None)
 # t_test_res[t_test_res["P-adjust"] < 0.05]["Metabolite"].to_csv("Goldman_DA_names.csv", index=None)
@@ -61,10 +71,9 @@ print(len(DA_metabolites_KEGG), "DA in KEGG")
 #     all_KEGG_compounds = pickle.load(handle)
 
 ORA_res = utils.over_representation_analysis(DA_metabolites_KEGG, background_list_KEGG, KEGG_pathways)
-ORA_res.to_csv("../Goldman_data/goldman_ORA.csv")
+# ORA_res.to_csv("../Goldman_data/goldman_ORA.csv")
 
-ORA_reactome = utils.over_representation_analysis(DA_metabolites_chEBI, background_list_chEBI, Reactome_human)
+# ORA_reactome = utils.over_representation_analysis(DA_metabolites_chEBI, background_list_chEBI, Reactome_human)
 # print(ORA_reactome)
-print("length")
-print(len(ORA_reactome[ORA_reactome["P-adjust"] < 0.2]["P-adjust"].tolist()))
-ORA_reactome.to_csv("Goldman_ORA_reactome.csv")
+print(len(ORA_res[ORA_res["P-value"] < 0.1]["P-adjust"].tolist()))
+# ORA_reactome.to_csv("Goldman_ORA_reactome.csv")

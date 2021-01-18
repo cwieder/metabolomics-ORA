@@ -7,6 +7,8 @@ import pickle
 
 kegg_db = KEGG(verbose=False)
 
+with open('MetaCyc_compound_mapping.pickle', 'rb') as handle:
+    metacyc_mapping = pickle.load(handle)
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
 def yamada_data(db="KEGG"):
@@ -50,14 +52,28 @@ def yamada_data(db="KEGG"):
             KEGG2Reactome[cpd] = chebiID[6:]
         data_proc = data_proc.rename(columns=KEGG2Reactome)
 
+    # new_list = []
+    # for cpd in data_proc.iloc[:, :-1].columns.tolist():
+    #     new_list.append("Kegg:"+cpd+"\n")
+    # with open('yamada_kegg4metacyc.txt', 'w') as f:
+    #     for item in new_list:
+    #         f.write(item)
+    #
+    if db == "Cyc":
+        mapping = pd.read_csv("yamada2metacyc.txt", sep="\t")
+        KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
+        data_proc = data_proc.rename(columns=KEGG2BioCyc)
+        data_proc = data_proc[data_proc.columns.dropna()]
+
     ttest_res = utils.t_tests(data_proc.iloc[:, :-1], data_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background = data_proc.iloc[:, :-1].columns.tolist()
 
     return DEM, background, data_proc
 
+
 def brown_data(db="KEGG"):
-    mat = pd.read_excel("../Brown_mouse_diet/abundance.xlsx", index_col=0, header=1).T
+    mat = pd.read_excel("../Brown_mouse_diet/abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)").T
     mapping = dict(zip(mat.columns.tolist(), mat.loc["KEGG", :].tolist()))
     mat = mat.rename(columns=mapping)
     mat = mat.loc[:, mat.columns.notnull()]
@@ -81,11 +97,16 @@ def brown_data(db="KEGG"):
         mat_proc = mat_proc.rename(columns=KEGG2Reactome)
         mat_proc = mat_proc.loc[:, mat_proc.columns.notnull()]
 
+    if db == "Cyc":
+        mapping = pd.read_csv("brown2metacyc.txt", sep="\t")
+        KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
+        mat_proc = mat_proc.rename(columns=KEGG2BioCyc)
+        mat_proc = mat_proc[mat_proc.columns.dropna()]
+
     ttest_res = utils.t_tests(mat_proc.iloc[:, :-1], mat_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].dropna().tolist()
     background = mat_proc.columns.tolist()[:-1]
     return DEM, background, mat_proc
-
 
 def stevens_data(db="KEGG"):
     md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
@@ -123,12 +144,19 @@ def stevens_data(db="KEGG"):
     stevens_matrix_proc = stevens_matrix_proc.loc[:, stevens_matrix_proc.columns.notnull()]
     stevens_matrix_proc = stevens_matrix_proc.loc[:, ~stevens_matrix_proc.columns.duplicated()]
 
+    if db == "Cyc":
+        mapping = pd.read_csv("stevens2metacyc.txt", sep="\t")
+        KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
+        stevens_matrix_proc = stevens_matrix_proc.rename(columns=KEGG2BioCyc)
+        stevens_matrix_proc = stevens_matrix_proc[stevens_matrix_proc.columns.dropna()]
+
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background_list = stevens_matrix_proc.columns.tolist()
 
     return DEM, background_list, stevens_matrix_proc
 
+stevens_data()
 
 def zamboni_data(knockout, db="KEGG"):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)

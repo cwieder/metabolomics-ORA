@@ -235,18 +235,16 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     p_vals = []
     q_vals = []
     significant_pathways = []  # at P < 0.1
-    print(str(len(organism_compounds)), "Reactome organism compounds")
     if zamboni == False:
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = mat_unannotated.columns.tolist()
         n_misidentified = int(len(metabolites) * (percentage / 100))
-        for i in range(0, 100):
+        for i in range(0, 5):
             # Randomly replace n compounds
             metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
             # TODO: CHECK THAT ORGANISM COMPOUNDS CONTAIN THE RIGHT THINGS e.g. glycans? drugs? should be included?
             replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
-            print(replacement_dict)
             misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
 
             # Perform t-tests and ORA
@@ -260,13 +258,12 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     elif zamboni == True:
         metabolites = processed_matrix.columns.tolist()
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
-        for i in range(0, 100):
+        for i in range(0, 5):
             metabolites_to_replace = np.random.choice(list(set(metabolites)), n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds,
                                                                   [background_list + list(metabolites_to_replace)]), n_misidentified,
                                                      replace=False)
             replacement_dict = dict(zip(metabolites_to_replace, replacement_compounds))
-            print(replacement_dict)
             misidentified_matrix = processed_matrix.rename(columns=replacement_dict)
             DEM = []
             for x in misidentified_matrix.T.itertuples():
@@ -329,7 +326,6 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                 replacement_cpd = np.random.choice(misidentifiable_metabolites[cpd_to_relpace], 1)[0]
                 if replacement_cpd not in list(replacement_dict.values()) and replacement_cpd not in metabolites:
                     replacement_dict[cpd_to_relpace] = replacement_cpd
-            print(replacement_dict)
             misidentified_matrix = mat_unannotated.rename(columns=replacement_dict)
             # Perform t-tests and ORA
             ttest_res = t_tests(misidentified_matrix, processed_matrix["Group"], "fdr_bh")

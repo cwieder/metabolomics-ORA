@@ -7,7 +7,6 @@ import seaborn as sns
 import pickle
 
 
-
 # Import the relevant datasets
 DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
@@ -34,41 +33,45 @@ datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_K
 
 print("Data import complete")
 
-def vary_p_val_cutoff():
-    p_value_cutoffs = [0.001, 0.01, 0.05, 0.1, 0.2]
+def vary_dam_size():
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
-    for d in datasets.keys():
-        for p in p_value_cutoffs:
-            for m in multiple_test_options:
-                t_test_res = utils.t_tests(datasets[d][4].iloc[:, :-1], datasets[d][4]["Group"], m)
-                DA_metabolites = t_test_res[t_test_res["P-adjust"] < p]["Metabolite"].tolist()
+    for d in ["Auwerx", "Yamada", "Stevens", "Brown"]:
+        for m in multiple_test_options:
+            t_test_res = utils.t_tests(datasets[d][4].iloc[:, :-1], datasets[d][4]["Group"], m)
+            t_test_res = t_test_res.sort_values(by=["P-adjust"])
+            DA_max = len(t_test_res[t_test_res["P-adjust"] < 0.10]["Metabolite"].tolist())
+            size_range = [i for i in range(0, 105, 5)]
+            for s in size_range:
+                # DA_metabolites = t_test_res[t_test_res["P-adjust"] < s]["Metabolite"].tolist()
+                DA_metabolites = t_test_res.head(int(DA_max * (s / 100)))["Metabolite"].tolist()
                 ora_res = utils.over_representation_analysis(DA_metabolites, datasets[d][1], datasets[d][2])
-                res_list.append([d, p, m, len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())])
+                res_list.append([d, s, m, len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())])
     res_df = pd.DataFrame(res_list, columns=["Dataset", "Cutoff_P", "Multiple_correction_method", "n_p_less_01"])
     res_df_bonferroni = res_df[res_df["Multiple_correction_method"] == "bonferroni"]
+    print(res_df_bonferroni)
     res_df_FDR_BH = res_df[res_df["Multiple_correction_method"] == "fdr_bh"]
     with plt.style.context('seaborn'):
         fig, ax1 = plt.subplots(1, 1)
         plt.style.use("seaborn")
         cols = sns.color_palette("deep", 8)
 
-        for num, i in enumerate(datasets.keys()):
-            ax1.plot(res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['Cutoff_P'].to_numpy().astype('str'),
+        for num, i in enumerate(["Auwerx", "Yamada", "Stevens", "Brown"]):
+            ax1.plot(res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['Cutoff_P'].to_numpy().astype('int'),
                          res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['n_p_less_01'].tolist(), 'o', label=i+" Bonferroni", linestyle='-', color=cols[num])
-            ax1.plot(res_df_FDR_BH[res_df_FDR_BH["Dataset"] == i]['Cutoff_P'].to_numpy().astype('str'),
+            ax1.plot(res_df_FDR_BH[res_df_FDR_BH["Dataset"] == i]['Cutoff_P'].to_numpy().astype('int'),
                          res_df_FDR_BH[res_df_FDR_BH["Dataset"] == i]['n_p_less_01'].tolist(), 'o', label=i+" FDR BH", linestyle='--', color=cols[num])
         # plt.title("Reactome", fontsize=14)
 
         ax1.legend()
+        ax1.axvline(100, color='black')
         ax1.set_ylabel("Number of pathways significant at P < 0.1")
-        ax1.set_xlabel("P-value cutoff for differentially abundant metabolite list")
-        plt.savefig("../Figures/KEGG_p_value_cutoffs.png", dpi=300)
+        ax1.set_xlabel("Top N% of Q-values (100% is equivalent to Q-value < 0.10)")
+        plt.savefig("../Figures/KEGG_pq_value_0_10_cutoff.png", dpi=300)
         plt.show()
 
-# vary_p_val_cutoff()
 
-def vary_dam_size():
+def vary_p_val_cutoff():
     proportion_of_bg = [i for i in range(0, 85, 5)]
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
@@ -133,7 +136,51 @@ def vary_dam_size():
         ax1.legend()
         ax1.set_ylabel("Number of pathways significant at P < 0.1")
         ax1.set_xlabel("Top N% of differentially abundant metabolites (ranked by Q-value)")
-        plt.savefig("../Figures/vary_DAM_size_percentage.png", dpi=300)
-        plt.show()
+        # plt.savefig("../Figures/vary_DAM_size_percentage.png", dpi=300)
+        # plt.show()
 
-vary_dam_size()
+# vary_dam_size()
+
+def vary_pval():
+    cutoffs = [0.001, 0.005, 0.01, 0.05, 0.1]
+    multiple_test_options = ["bonferroni", "fdr_bh"]
+    res_list = []
+    for d in ["Auwerx", "Brown", "Yamada", "Stevens"]:
+        for c in cutoffs:
+            for m in multiple_test_options:
+                t_test_res = utils.t_tests(datasets[d][4].iloc[:, :-1], datasets[d][4]["Group"], m)
+                DA_metabolites = t_test_res[t_test_res["P-adjust"] < c]["Metabolite"].tolist()
+                ora_res = utils.over_representation_analysis(DA_metabolites, datasets[d][1], datasets[d][2])
+                res_list.append([d, c, m, len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())])
+
+    res_df = pd.DataFrame(res_list, columns=["Dataset", "Cutoff_P", "Multiple_correction_method", "n_p_less_01"])
+    res_df.to_csv("p-value_cutoffs.csv")
+    res_df = pd.read_csv("p-value_cutoffs.csv")
+    res_df_FDR_BH = res_df[res_df["Multiple_correction_method"] == "fdr_bh"]
+    res_df_FDR_BH = res_df_FDR_BH.drop("Multiple_correction_method", axis=1)
+    res_df_FDR_BH = res_df_FDR_BH.pivot(index='Dataset', columns=['Cutoff_P'], values='n_p_less_01')
+    res_df_bonferroni = res_df[res_df["Multiple_correction_method"] == "bonferroni"]
+    res_df_bonferroni = res_df_bonferroni.drop("Multiple_correction_method", axis=1)
+    res_df_bonferroni = res_df_bonferroni.pivot(index='Dataset', columns=['Cutoff_P'],
+                                        values='n_p_less_01')
+
+    #
+    with plt.style.context('seaborn'):
+        sns.set_palette("Blues_r")
+        fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True)
+
+        res_df_FDR_BH.plot.bar(ax=ax1)
+        ax1.set_title('Benjamini-Hochberg FDR')
+        # plt.ylabel("Number of significant pathway at P < 0.1")
+        # plt.xlabel("Dataset")
+
+        res_df_bonferroni.plot.bar(ax=ax2)
+        ax2.set_title('Bonferroni')
+        # plt.title('Bonferroni')
+        plt.tight_layout()
+        plt.show()
+        plt.savefig("../Figures/vary_pvalue_cutoff.png", dpi=300)
+
+
+vary_pval()
+
