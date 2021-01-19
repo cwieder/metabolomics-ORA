@@ -52,13 +52,6 @@ def yamada_data(db="KEGG"):
             KEGG2Reactome[cpd] = chebiID[6:]
         data_proc = data_proc.rename(columns=KEGG2Reactome)
 
-    # new_list = []
-    # for cpd in data_proc.iloc[:, :-1].columns.tolist():
-    #     new_list.append("Kegg:"+cpd+"\n")
-    # with open('yamada_kegg4metacyc.txt', 'w') as f:
-    #     for item in new_list:
-    #         f.write(item)
-    #
     if db == "Cyc":
         mapping = pd.read_csv("yamada2metacyc.txt", sep="\t")
         KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
@@ -153,10 +146,7 @@ def stevens_data(db="KEGG"):
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background_list = stevens_matrix_proc.columns.tolist()
-
     return DEM, background_list, stevens_matrix_proc
-
-stevens_data()
 
 def zamboni_data(knockout, db="KEGG"):
     n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
@@ -224,6 +214,15 @@ def zamboni_data(knockout, db="KEGG"):
             annotations_neg = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_neg.items()}
             annotations_pos = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_pos.items()}
 
+    if db == "Cyc":
+        mapping = pd.read_csv("zamboni2metacyc.txt", sep="\t")
+        mapping_dict = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
+        annotations_neg = {k: [mapping_dict[i] if i in mapping_dict.keys() else "" for i in v] for k, v in annotations_neg.items()}
+        annotations_pos = {k: [mapping_dict[i] if i in mapping_dict.keys() else "" for i in v] for k, v in
+                           annotations_pos.items()}
+
+        # annotations_neg = {k: ([str(mapping_dict[i]) for i in v] if mapping_dict[i] else "Null") for k, v in annotations_neg.items() else "Null"}
+        # annotations_pos = {k: [str(mapping_dict[i]) for i in v] for k, v in annotations_pos.items()}
     strain_DA_compounds = dict.fromkeys(n_zscore.columns)
 
     for strain in strain_DA_compounds.keys():
@@ -301,6 +300,13 @@ def auwerx_data(db="KEGG"):
                 KEGG2Reactome[cpd] = np.nan
         matrix_proc_copy = matrix_proc_copy.rename(columns=KEGG2Reactome)
         matrix_proc_copy = matrix_proc_copy.loc[:, matrix_proc_copy.columns.notnull()]
+
+    if db == "Cyc":
+        mapping = pd.read_csv("auwerx2metacyc.txt", sep="\t")
+        KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
+        matrix_proc_copy = matrix_proc_copy.rename(columns=KEGG2BioCyc)
+        matrix_proc_copy = matrix_proc_copy[matrix_proc_copy.columns.dropna()]
+
     ttest_res = utils.t_tests(matrix_proc_copy.iloc[:, :-1], matrix_proc_copy["Group"], "fdr_bh")
     DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background_list = matrix_proc_copy.columns.tolist()

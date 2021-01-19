@@ -171,6 +171,7 @@ def vary_pval():
 
         res_df_FDR_BH.plot.bar(ax=ax1)
         ax1.set_title('Benjamini-Hochberg FDR')
+        ax1.set_ylabel("Number of pathways significant at P < 0.1")
         # plt.ylabel("Number of significant pathway at P < 0.1")
         # plt.xlabel("Dataset")
 

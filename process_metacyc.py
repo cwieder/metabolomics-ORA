@@ -2,10 +2,11 @@ import pandas as pd
 from itertools import groupby
 import pickle
 
-raw = pd.read_csv("All_pathways_of_H._sapiens.txt", sep="\t", index_col=0)
-pway_names = pd.read_csv("All_pathways_of_H._sapiens (2).txt", sep="\t", index_col=0)
-names = pway_names["Pathways"].tolist()
+raw = pd.read_csv("All_pathways_of_E_coli.txt", sep="\t", index_col=0)
+# pway_names = pd.read_csv("All_pathways_of_H._sapiens (2).txt", sep="\t", index_col=0)
+# names = pway_names["Pathways"].tolist()
 pathway_compounds = dict.fromkeys(raw.index.tolist()) # dictionary of pathways and their compounds
+
 
 for i in raw.itertuples():
     cpds = i[2].split(" // ")
@@ -31,13 +32,13 @@ with open("../tier1/24.1/data/compounds.dat", "r", encoding='latin-1', newline="
                 field = field.split()
                 alt_compounds[cpd].append(field[3].replace('"', ''))
 
-print(alt_compounds.keys())
+# print(alt_compounds.keys())
 
 
-# pathway_df = pd.DataFrame.from_dict(pathway_compounds, orient="index")
-# pathway_df.insert(loc=0, column="Pathway_name", value=names)
-# print(pathway_df)
-# pathway_df.to_csv("Metacyc_human_pathways.csv")
+pathway_df = pd.DataFrame.from_dict(pathway_compounds, orient="index")
+pathway_df.insert(loc=0, column="Pathway_name", value=raw["Pathways"])
+print(pathway_df)
+pathway_df.to_csv("Metacyc_EColi_pathways.csv")
 
-with open('MetaCyc_compound_mapping.pickle', 'wb') as handle:
-    pickle.dump(alt_compounds, handle, protocol=pickle.HIGHEST_PROTOCOL)
+# with open('MetaCyc_compound_mapping.pickle', 'wb') as handle:
+#     pickle.dump(alt_compounds, handle, protocol=pickle.HIGHEST_PROTOCOL)

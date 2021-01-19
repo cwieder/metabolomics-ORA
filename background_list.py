@@ -7,20 +7,30 @@ import seaborn as sns
 import numpy as np
 from matplotlib import gridspec
 
-# Import the relevant datasets # Import Reactome datasets
-DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Reactome")
-DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Reactome")
-DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Reactome")
-DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Reactome")
-DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Reactome")
-DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
+# Import the relevant datasets
+# Import Reactome datasets
+# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Reactome")
+# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Reactome")
+# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Reactome")
+# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Reactome")
+# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Reactome")
+# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
 
+# Import KEGG datasets
 # DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
 # DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
 # DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
 # DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
 # DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
 # DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
+
+# Import BioCyc datasets
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Cyc")
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Cyc")
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Cyc")
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Cyc")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Cyc")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Cyc")
 
 # Import KEGG pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
@@ -38,6 +48,12 @@ Reactome_mouse_pathways = Reactome_pathways[Reactome_pathways.index.str.contains
 all_reactome_human_bg = list(set([x for x in Reactome_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_reactome_mouse_bg = list(set([x for x in Reactome_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
+# Import BioCyc pathway sets
+BioCyc_human_pathways = pd.read_csv("Metacyc_human_pathways.csv")
+BioCyc_eco_pathways = pd.read_csv("Metacyc_EColi_pathways.csv")
+all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
+all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
+
 datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
             "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
             "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
@@ -52,12 +68,22 @@ datasets_reactome = {"Auwerx": [DEM_auwerx, background_auwerx, Reactome_human_pa
                      "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
                      "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
 
+datasets_biocyc = {"Auwerx": [DEM_auwerx, background_auwerx, BioCyc_human_pathways, all_biocyc_human_bg],
+                   "Yamada": [DEM_yamada, background_yamada, BioCyc_human_pathways, all_biocyc_human_bg],
+                   "Stevens": [DEM_stevens, background_stevens, BioCyc_human_pathways, all_biocyc_human_bg],
+                   "Brown": [DEM_brown, background_brown, BioCyc_human_pathways, all_biocyc_human_bg],
+                   "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, BioCyc_eco_pathways, all_biocyc_eco_bg],
+                   "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, BioCyc_eco_pathways, all_biocyc_eco_bg]}
+
 print("Data processing complete.")
+
 
 def plot_log_pvalues(db="KEGG"):
     d_sets = datasets
     if db == "Reactome":
         d_sets = datasets_reactome
+    if db == "Cyc":
+        d_sets = datasets_biocyc
     plt_dict = {}
     for i in d_sets.keys():
         ora_res = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], d_sets[i][2])
@@ -82,15 +108,15 @@ def plot_log_pvalues(db="KEGG"):
                          scatter_kws={'s': 3})
     ax.set_xlabel("Specified background list (-log10 P-value)",
                   fontsize=12)
-    ax.set_ylabel("All Reactome compounds (organism-specific) (-log10 P-value)",
+    ax.set_ylabel("All BioCyc compounds (organism-specific) (-log10 P-value)",
                   fontsize=12)
-    ax.set(ylim=(0, 5), xlim=(0, 5))
+    ax.set(ylim=(0, 8), xlim=(0, 8))
     ax.legend(plt_dict.keys())
     ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
-    plt.title("Reactome")
-    plt.savefig("../Figures/logp_plot_Reactome.png", dpi=300)
+    plt.title("BioCyc")
+    plt.savefig("../Figures/logp_plot_BioCyc.png", dpi=300)
     plt.show()
 
     # fig, ax = plt.subplots(3,2)
@@ -115,7 +141,8 @@ def plot_log_pvalues(db="KEGG"):
     # plt.show()
 
 
-# plot_log_pvalues(db="Reactome")
+# plot_log_pvalues(db="Cyc")
+
 
 def plot_grouped_stacked_bar(db="KEGG"):
     print("begin plotting")
@@ -123,6 +150,8 @@ def plot_grouped_stacked_bar(db="KEGG"):
     d_sets = datasets
     if db == "Reactome":
         d_sets = datasets_reactome
+    if db == "Cyc":
+        d_sets = datasets_biocyc
     for i in d_sets.keys():
         ora_res = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], d_sets[i][2])
         ora_res_all = utils.over_representation_analysis(d_sets[i][0], d_sets[i][3], d_sets[i][2])
@@ -136,7 +165,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
         print(n_p_less_01)
         print(n_p_less_01_all)
         df = pd.DataFrame([[n_p_less_01, n_q_less_01], [n_p_less_01_all, n_q_less_01_all]],
-                          index=["Specified background list", "All Reactome compounds"], columns=["P", "Q"])
+                          index=["Specified background list", "All BioCyc compounds"], columns=["P", "Q"])
         df["Name"] = "df" + i
         dataframes.append(df)
 
@@ -150,7 +179,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
     dfall.reset_index(inplace=True)
     sns.set_style("dark")
     sns.set_palette("muted")
-    plt.figure(figsize=(7,5))
+    plt.figure(figsize=(7, 5))
     for i, g in enumerate(dfall.groupby("variable")):
         ax = sns.barplot(data=g[1],
                          x="index",
@@ -168,12 +197,13 @@ def plot_grouped_stacked_bar(db="KEGG"):
     bars = ax.patches
     for i in range(12, 24, 1):
         bars[i].set_hatch('//')
-    plt.title("Reactome", fontsize=14)
+    plt.title("BioCyc", fontsize=14)
     plt.tight_layout()
-    plt.savefig("../Figures/all_vs_experimental_barchart_Reactome.png", dpi=300)
+    plt.savefig("../Figures/all_vs_experimental_barchart_BioCyc.png", dpi=300)
     plt.show()
 
-# plot_grouped_stacked_bar(db="Reactome")
+
+plot_grouped_stacked_bar(db="Cyc")
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
@@ -198,9 +228,9 @@ def reduce_background_set(db="KEGG"):
                                    "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
                                    "q_std", "sd_proportion_p_vals"])
     res_df_keep_DEM = pd.DataFrame(results_lists_keep_DEM,
-                          columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
-                                   "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
-                                   "q_std", "sd_proportion_p_vals"])
+                                   columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
+                                            "n_q_less_0.1", "mean_proportion_p_vals", "p_std",
+                                            "q_std", "sd_proportion_p_vals"])
     res_df_keep_DEM.to_csv("Background_reduction_simulation_keep_DEM.csv")
     res_df.to_csv("Background_reduction_simulation.csv")
     # simulation_res = pd.read_csv("Background_reduction_simulation.csv")
@@ -241,6 +271,6 @@ def reduce_background_set(db="KEGG"):
         plt.savefig("background_list_reduction_proportion_Reactome.png", dpi=300)
         plt.show()
 
-reduce_background_set(db="Reactome")
+# reduce_background_set(db="Reactome")
 
 # Mind the gap set
