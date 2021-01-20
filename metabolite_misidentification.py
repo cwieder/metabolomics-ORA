@@ -17,7 +17,7 @@ import time
 
 DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
-# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
 DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
@@ -99,7 +99,7 @@ def random_misidentification(db="KEGG"):
 # random_misidentification(db="Reactome")
 
 # Parameter grid for TPR/FPR heatmaps. Numbers correspond to indexes in datasets param grids.
-param_grid_heatmaps = {"random": [utils.misidentify_metabolites, 4, 3, 1, 2, [i for i in range(0, 100, 10)]],
+param_grid_heatmaps = {"random": [utils.misidentify_metabolites, 4, 3, 1, 2, [i for i in range(0, 70, 10)]],
                        "mass": [utils.misidentify_metabolites_by_mass, 4, 2, 7, 3, [i for i in range(1, 7, 1)]],
                        "formula": [utils.misidentify_metabolites_by_formula, 4, 2, 7, 3, [i for i in range(1, 6, 1)]]}
 
@@ -197,7 +197,7 @@ def plot_ROC(pg, fname, db="KEGG"):
     results_TPR = []
     results_FPR = []
     # for d in ["Auwerx", "Brown", "Yamada", "Zamboni (dcuS)", "Zamboni (yfgM)"]:
-    for d in ["Auwerx", "Brown", "Yamada"]:
+    for d in d_sets.keys():
         print(d)
         if d.startswith("Zamboni"):
             original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
@@ -223,6 +223,9 @@ def plot_ROC(pg, fname, db="KEGG"):
 
         else:
             original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4][0]
+            non_signif_original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[5][0]
+            total_significant_paths = len(original_pathways)  # True positive
+            total_non_significant_paths = len(non_signif_original_pathways)  # True negative
             for i in pg[5]:
                 print(i)
                 res = pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4]
@@ -230,11 +233,11 @@ def plot_ROC(pg, fname, db="KEGG"):
                 pathway_fractions_TPR = []
                 pathway_fractions_FPR = []
                 for x in misidentified_pathways:
-                    total_significant_paths = len(original_pathways) # True positive + false positive
+
                     number_common_paths = len([i for i in x if i in original_pathways])
                     fraction_pathways_TPR = number_common_paths/total_significant_paths
                     pathway_fractions_TPR.append(fraction_pathways_TPR)
-                    fraction_pathways_FPR = len([i for i in x if i not in original_pathways])/total_significant_paths
+                    fraction_pathways_FPR = len([i for i in x if i not in original_pathways])/total_non_significant_paths
                     pathway_fractions_FPR.append(fraction_pathways_FPR)
                 avg_fraction_TPR = np.mean(pathway_fractions_TPR)
                 avg_fraction_FPR = np.mean(pathway_fractions_FPR)
@@ -252,25 +255,31 @@ def plot_ROC(pg, fname, db="KEGG"):
     print(res_df_TPR)
     plt.style.use("seaborn")
     plt.figure(figsize=(6, 6))
-    # plt.xlim(0, 1)
-    # plt.ylim(0, 1)
+    plt.xlim(0, 0.3)
+    plt.ylim(0, 1)
     plt.plot([0, 1], [0, 1], color='black', linestyle=':', label="y=x")
-    for i in ["Auwerx", "Brown", "Yamada"]:
-        xs = res_df_FPR[i].cumsum()
-        ys = res_df_TPR[i].cumsum()
-        plt.plot(xs, ys, linestyle="-", label=i)
+    for i in d_sets.keys():
+        xs = res_df_FPR[i]
+        ys = res_df_TPR[i]
+        plt.plot(xs, ys, label=i, marker="o")
 
     plt.title('ROC curve (random misidentification)')
-    # ax2 = plt.twiny()
-    # ax2.set_xlim(0, 90)
-    # ax2.set_xlabel("Percentage random misidentification")
     plt.legend()
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     plt.savefig(fname, dpi=300)
     plt.show()
 
-plot_ROC(param_grid_heatmaps["random"], "../Figures/test_roc.png", db="KEGG")
+    def auc_from_fpr_tpr(fpr, tpr, trapezoid=False):
+        inds = [i for (i, (s, e)) in enumerate(zip(fpr[: -1], fpr[1:])) if s != e] + [len(fpr) - 1]
+        fpr, tpr = fpr[inds], tpr[inds]
+        area = 0
+        ft = zip(fpr, tpr)
+        for p0, p1 in zip(ft[: -1], ft[1:]):
+            area += (p1[0] - p0[0]) * ((p1[1] + p0[1]) / 2 if trapezoid else p0[1])
+        return area
+
+plot_ROC(param_grid_heatmaps["mass"], "KEGG_mass_ROC.png", db="KEGG")
 
 
 def misidentification_mass_plot(db="KEGG"):
