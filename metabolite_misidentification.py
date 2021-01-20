@@ -257,13 +257,13 @@ def plot_ROC(pg, fname, db="KEGG"):
     plt.figure(figsize=(6, 6))
     plt.xlim(0, 0.3)
     plt.ylim(0, 1)
-    plt.plot([0, 1], [0, 1], color='black', linestyle=':', label="y=x")
+    plt.plot([1, 0], [1, 0], color='black', linestyle=':', label="y=x")
     for i in d_sets.keys():
         xs = res_df_FPR[i]
         ys = res_df_TPR[i]
         plt.plot(xs, ys, label=i, marker="o")
 
-    plt.title('ROC curve (random misidentification)')
+    plt.title('ROC curve (mass misidentification)')
     plt.legend()
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
