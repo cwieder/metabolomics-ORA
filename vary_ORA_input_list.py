@@ -174,13 +174,15 @@ def vary_pval():
         ax1.set_ylabel("Number of pathways significant at P < 0.1")
         # plt.ylabel("Number of significant pathway at P < 0.1")
         # plt.xlabel("Dataset")
+        ax1.legend(title="Q-value threshold")
 
         res_df_bonferroni.plot.bar(ax=ax2)
         ax2.set_title('Bonferroni')
+        ax2.legend(title="Q-value threshold")
         # plt.title('Bonferroni')
         plt.tight_layout()
-        plt.show()
         plt.savefig("../Figures/vary_pvalue_cutoff.png", dpi=300)
+        plt.show()
 
 
 vary_pval()
