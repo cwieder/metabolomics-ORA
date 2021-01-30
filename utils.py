@@ -13,7 +13,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 def data_processing(raw_matrix, firstrow, firstcol):
     '''
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
-    :param raw_matrix: raw abundance matrix with n-samples and m-metabolites
+    :param raw_matrix: raw abundance matrix with m-samples and n-metabolites
     :param firstrow: First row containing values (integer)
     :return: imputed, log-transformed and standardised matrix
     '''
@@ -23,11 +23,8 @@ def data_processing(raw_matrix, firstrow, firstcol):
     processed_matrix = processed_matrix.replace(',', '', regex=True)
     processed_matrix = processed_matrix.apply(pd.to_numeric)
     processed_matrix.replace(0, np.nan, inplace=True)
-
     processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.9]
-    # Remove metabolites not present in > 90% of samples
-    # by indexing df by rows with metabolites present in more than 90% of samples
-
+    # Remove metabolites not present in > 10% of samples
     # Missing value imputation using minimum value/2
     imputed_matrix = processed_matrix.replace(np.nan, processed_matrix.min(axis=0)/2)
     # Log2 transformation
@@ -323,7 +320,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 10):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -356,7 +353,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
 
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 10):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]

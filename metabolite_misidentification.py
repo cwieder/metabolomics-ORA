@@ -237,7 +237,7 @@ def plot_ROC(pg, fname, db="KEGG"):
                     number_common_paths = len([i for i in x if i in original_pathways])
                     fraction_pathways_TPR = number_common_paths/total_significant_paths
                     pathway_fractions_TPR.append(fraction_pathways_TPR)
-                    fraction_pathways_FPR = len([i for i in x if i not in original_pathways])/total_non_significant_paths
+                    fraction_pathways_FPR = len([i for i in x if i not in original_pathways])/total_significant_paths
                     pathway_fractions_FPR.append(fraction_pathways_FPR)
                 avg_fraction_TPR = np.mean(pathway_fractions_TPR)
                 avg_fraction_FPR = np.mean(pathway_fractions_FPR)
@@ -255,7 +255,7 @@ def plot_ROC(pg, fname, db="KEGG"):
     print(res_df_TPR)
     plt.style.use("seaborn")
     plt.figure(figsize=(6, 6))
-    plt.xlim(0, 0.3)
+    plt.xlim(0, 1)
     plt.ylim(0, 1)
     plt.plot([1, 0], [1, 0], color='black', linestyle=':', label="y=x")
     for i in d_sets.keys():
@@ -279,7 +279,7 @@ def plot_ROC(pg, fname, db="KEGG"):
             area += (p1[0] - p0[0]) * ((p1[1] + p0[1]) / 2 if trapezoid else p0[1])
         return area
 
-plot_ROC(param_grid_heatmaps["mass"], "KEGG_mass_ROC.png", db="KEGG")
+plot_ROC(param_grid_heatmaps["mass"], "KEGG_mass_ROC_5x.png", db="KEGG")
 
 
 def misidentification_mass_plot(db="KEGG"):

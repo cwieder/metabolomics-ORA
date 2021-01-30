@@ -77,6 +77,7 @@ def brown_data(db="KEGG"):
     metadata_dict = dict(zip(sample_name, diet))
     mat_proc = utils.data_processing(mat, firstrow=6, firstcol=1)
     mat_proc["Group"] = mat_proc.index.map(metadata_dict)
+    mat_proc = mat_proc.iloc[:, ~mat_proc.columns.duplicated()]
 
     if db == "Reactome":
         map_kegg_chebi = kegg_db.conv("chebi", "compound")

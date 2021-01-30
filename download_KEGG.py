@@ -13,6 +13,7 @@ pathways = data.text
 pathways = pathways.split("\n")
 pathways = filter(None, pathways)
 pathway_dict = dict()
+print(len(pathway_dict))
 
 for path in pathways:
     path = path.split("\t")
@@ -24,6 +25,7 @@ for path in pathways:
 base_url = 'http://rest.kegg.jp/link/cpd/'
 pathway_ids = [*pathway_dict]
 pathway_names = list(pathway_dict.values())
+print(len(pathway_names))
 
 pathway_compound_mapping = dict()
 for i in pathway_ids:
@@ -42,7 +44,7 @@ for i in pathway_ids:
 df = pd.DataFrame.from_dict(pathway_compound_mapping, orient='index')
 df.insert(0, 'Pathway_name', pathway_names)
 
-df.to_csv("KEGG_human_pathways_compounds.csv")
+# df.to_csv("KEGG_human_pathways_compounds.csv")
 print("Complete!")
 
 
