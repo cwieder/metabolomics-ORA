@@ -182,20 +182,19 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
         list_size = int(len(background_list)*(percentage/100))
     else:
         list_size = int(len(bg_list_without_dem)*(percentage/100))
-    print(list_size, str(percentage) +"%")
+#     print(list_size, str(percentage) +"%")
 
     p_vals = []
     q_vals = []
     baseline_significant_paths = []
     proportion_of_original_pathways_signficant_p = []
-
     # proportion_of_original_pathways_signficant_q = []
 
     baseline_res = over_representation_analysis(DEM_list, background_list, pathways_df)
     baseline_significant_paths.append(len(baseline_res[baseline_res["P-value"] < 0.1]["P-value"].tolist()))
     # q_vals.append(len(baseline_res[baseline_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
 
-    for i in range(0, 100):
+    for i in range(0, 5):
         if not keep_DEM:
             bg_list_reduced = np.random.choice(background_list, list_size, replace=False)
         else:
@@ -203,7 +202,7 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
             bg_list_reduced = bg_list_reduced.tolist() + DEM_list
         ora_res = over_representation_analysis(DEM_list, bg_list_reduced, pathways_df)
         p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
-        print(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()), baseline_significant_paths[0])
+#         print(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()), baseline_significant_paths[0])
         proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())/baseline_significant_paths[0])
         q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
         # proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist())/q_vals[0])
