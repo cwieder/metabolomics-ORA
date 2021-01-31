@@ -17,20 +17,20 @@ from matplotlib import gridspec
 # DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
 
 # Import KEGG datasets
-# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
-# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
-# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
-# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
-# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
-# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import BioCyc datasets
-DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Cyc")
-DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Cyc")
-DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Cyc")
-DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Cyc")
-DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Cyc")
-DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Cyc")
+# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Cyc")
+# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Cyc")
+# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Cyc")
+# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Cyc")
+# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Cyc")
+# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Cyc")
 
 # Import KEGG pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
@@ -108,15 +108,15 @@ def plot_log_pvalues(db="KEGG"):
                          scatter_kws={'s': 3})
     ax.set_xlabel("Specified background list (-log10 P-value)",
                   fontsize=12)
-    ax.set_ylabel("All BioCyc compounds (organism-specific) (-log10 P-value)",
+    ax.set_ylabel("All " + str(db) + " compounds (organism-specific) (-log10 P-value)",
                   fontsize=12)
     ax.set(ylim=(0, 8), xlim=(0, 8))
     ax.legend(plt_dict.keys())
     ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
-    plt.title("BioCyc")
-    plt.savefig("../Figures/logp_plot_BioCyc.png", dpi=300)
+    plt.title(db)
+    # plt.savefig("../Figures/logp_plot_BioCyc.png", dpi=300)
     plt.show()
 
     # fig, ax = plt.subplots(3,2)
@@ -141,7 +141,7 @@ def plot_log_pvalues(db="KEGG"):
     # plt.show()
 
 
-# plot_log_pvalues(db="Cyc")
+plot_log_pvalues(db="KEGG")
 
 
 def plot_grouped_stacked_bar(db="KEGG"):
@@ -203,7 +203,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
     plt.show()
 
 
-plot_grouped_stacked_bar(db="Cyc")
+# plot_grouped_stacked_bar(db="Cyc")
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):

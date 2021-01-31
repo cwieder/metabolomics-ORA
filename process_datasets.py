@@ -12,7 +12,7 @@ with open('MetaCyc_compound_mapping.pickle', 'rb') as handle:
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
 def yamada_data(db="KEGG"):
-    data = pd.read_excel("../Yamada/Yamada.xlsx", index_col=0, header=0).T
+    data = pd.read_excel("example_data/Yachida_abundance.xlsx", index_col=0, header=0).T
     data = data.rename(columns={'Group': 'disease'})
     sample_disease_dict = dict(zip(data.index, data['disease']))
     data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
@@ -66,12 +66,12 @@ def yamada_data(db="KEGG"):
 
 
 def brown_data(db="KEGG"):
-    mat = pd.read_excel("../Brown_mouse_diet/abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)").T
+    mat = pd.read_excel("example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)").T
     mapping = dict(zip(mat.columns.tolist(), mat.loc["KEGG", :].tolist()))
     mat = mat.rename(columns=mapping)
     mat = mat.loc[:, mat.columns.notnull()]
     mat = mat.loc[:, ~mat.columns.duplicated()]
-    metadata = pd.read_csv("../Brown_mouse_diet/s_metabolon.txt", sep="\t")
+    metadata = pd.read_csv("example_data/Labbe_metadata.txt", sep="\t")
     sample_name = [i[0:10] for i in metadata["Sample Name"]]
     diet = metadata["Factor Value[Genotype]"].tolist()
     metadata_dict = dict(zip(sample_name, diet))
@@ -103,7 +103,7 @@ def brown_data(db="KEGG"):
     return DEM, background, mat_proc
 
 def stevens_data(db="KEGG"):
-    md_raw = pd.read_csv("../Stevens/MTBLS136_compressed_files/s_MTBLS136.txt", sep="\t")
+    md_raw = pd.read_csv("example_data/Stevens_metadata.txt", sep="\t")
     metadata_list = list(zip(md_raw['Factor Value[CurrentPMH]'], md_raw['Factor Value[Gender]'],
                              md_raw['Factor Value[AgeAtBloodDraw]'],
                              ['Over 75' if val not in ['<=55', '56-60', '61-65', '66-70', '71-75'] else 'Under 75' for val in md_raw['Factor Value[AgeAtBloodDraw]']]))
@@ -279,7 +279,7 @@ def zamboni_data(knockout, db="KEGG"):
     return DEM, background_list_all_annotations, mat
 
 def auwerx_data(db="KEGG"):
-    mat = pd.read_excel("../mitochondria/abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
+    mat = pd.read_excel("example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
     mat = mat.iloc[6:, :]
     mat = mat.loc[:, ~mat.columns.duplicated(keep='first')]
     mat = mat.loc[:, mat.columns.notnull()]

@@ -7,11 +7,11 @@ from matplotlib_venn import venn2, venn2_circles, venn2_unweighted
 import numpy as np
 logp_all = pd.read_csv("hmdb_logp_all.csv", index_col=0)
 
-# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
-# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
-# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
-# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
-# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
