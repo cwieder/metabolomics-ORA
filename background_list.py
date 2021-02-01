@@ -54,26 +54,26 @@ BioCyc_eco_pathways = pd.read_csv("Metacyc_EColi_pathways.csv")
 all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
-datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
-            "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
+datasets = {"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
+            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
             "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
-            "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
-            "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
-            "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
+            "Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
+            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
+            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
 
-datasets_reactome = {"Auwerx": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
-                     "Yamada": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
+datasets_reactome = {"Quirós": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
+                     "Yachida": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
                      # "Stevens": [DEM_stevens, background_stevens, Reactome_human_pathways, all_reactome_human_bg],
-                     "Brown": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg],
-                     "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
-                     "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
+                     "Labbé": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg],
+                     "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
+                     "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
 
-datasets_biocyc = {"Auwerx": [DEM_auwerx, background_auwerx, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Yamada": [DEM_yamada, background_yamada, BioCyc_human_pathways, all_biocyc_human_bg],
+datasets_biocyc = {"Quirós": [DEM_auwerx, background_auwerx, BioCyc_human_pathways, all_biocyc_human_bg],
+                   "Yachida": [DEM_yamada, background_yamada, BioCyc_human_pathways, all_biocyc_human_bg],
                    "Stevens": [DEM_stevens, background_stevens, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Brown": [DEM_brown, background_brown, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, BioCyc_eco_pathways, all_biocyc_eco_bg],
-                   "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, BioCyc_eco_pathways, all_biocyc_eco_bg]}
+                   "Labbé": [DEM_brown, background_brown, BioCyc_human_pathways, all_biocyc_human_bg],
+                   "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, BioCyc_eco_pathways, all_biocyc_eco_bg],
+                   "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, BioCyc_eco_pathways, all_biocyc_eco_bg]}
 
 print("Data processing complete.")
 
@@ -110,13 +110,13 @@ def plot_log_pvalues(db="KEGG"):
                   fontsize=12)
     ax.set_ylabel("All " + str(db) + " compounds (organism-specific) (-log10 P-value)",
                   fontsize=12)
-    ax.set(ylim=(0, 8), xlim=(0, 8))
+    ax.set(ylim=(0, 10), xlim=(0, 10))
     ax.legend(plt_dict.keys())
     ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
-    plt.title(db)
-    # plt.savefig("../Figures/logp_plot_BioCyc.png", dpi=300)
+    # plt.title(db)
+    plt.savefig("../Figures/logp_plot_KEGG.png", dpi=300)
     plt.show()
 
     # fig, ax = plt.subplots(3,2)
@@ -141,11 +141,10 @@ def plot_log_pvalues(db="KEGG"):
     # plt.show()
 
 
-plot_log_pvalues(db="KEGG")
+# plot_log_pvalues(db="KEGG")
 
 
 def plot_grouped_stacked_bar(db="KEGG"):
-    print("begin plotting")
     dataframes = []
     d_sets = datasets
     if db == "Reactome":
@@ -165,7 +164,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
         print(n_p_less_01)
         print(n_p_less_01_all)
         df = pd.DataFrame([[n_p_less_01, n_q_less_01], [n_p_less_01_all, n_q_less_01_all]],
-                          index=["Specified background list", "All BioCyc compounds"], columns=["P", "Q"])
+                          index=["Specified background list", "All "+ db + " compounds"], columns=["P", "Q"])
         df["Name"] = "df" + i
         dataframes.append(df)
 
@@ -179,7 +178,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
     dfall.reset_index(inplace=True)
     sns.set_style("dark")
     sns.set_palette("muted")
-    plt.figure(figsize=(7, 5))
+    plt.figure(figsize=(7, 5), dpi=300)
     for i, g in enumerate(dfall.groupby("variable")):
         ax = sns.barplot(data=g[1],
                          x="index",
@@ -189,21 +188,21 @@ def plot_grouped_stacked_bar(db="KEGG"):
                          edgecolor="k")
     ax.set_xlabel('Background list used in ORA')
     ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)')
-    labels = ["Auwerx", "Yamada", "Stevens", "Brown", "Zamboni (yfgM)", "Zamboni (dcuS)"]
+    labels = ["Quirós", "Yachida", "Stevens", "Labbé", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]
     h, l = ax.get_legend_handles_labels()
     plt.legend(h[0:6], labels, title="Dataset", bbox_to_anchor=(1.4, 1), loc="upper right")
     # Set hatches for q-values bars
-    plt.subplots_adjust(right=0.75)
+    plt.subplots_adjust(right=0.8)
     bars = ax.patches
     for i in range(12, 24, 1):
         bars[i].set_hatch('//')
-    plt.title("BioCyc", fontsize=14)
+    # plt.title(db, fontsize=14)
     plt.tight_layout()
-    plt.savefig("../Figures/all_vs_experimental_barchart_BioCyc.png", dpi=300)
+    plt.savefig("../Figures/all_vs_experimental_barchart_KEGG.png", dpi=300)
     plt.show()
 
 
-# plot_grouped_stacked_bar(db="Cyc")
+# plot_grouped_stacked_bar(db="KEGG")
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
@@ -238,7 +237,7 @@ def reduce_background_set(db="KEGG"):
     simulation_res = res_df
     simulation_res_keep_DEM = res_df_keep_DEM
     with plt.style.context('seaborn'):
-        fig = plt.figure(figsize=(10, 6))
+        fig = plt.figure(figsize=(10, 6), dpi=300)
         gs = gridspec.GridSpec(1, 2, width_ratios=[3, 2])
         ax1 = fig.add_subplot(gs[0])
         ax2 = fig.add_subplot(gs[1], sharey=ax1)
@@ -256,7 +255,7 @@ def reduce_background_set(db="KEGG"):
                          yerr=simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['sd_proportion_p_vals'],
                          label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax2.set_xlim(100, 50)
-        fig.suptitle("Reactome", fontsize=14)
+        # fig.suptitle("Reactome", fontsize=14)
         handles, labels = ax1.get_legend_handles_labels()
         # plt.subplots_adjust(right=0.7)
         fig.add_subplot(111, frameon=False)
@@ -268,9 +267,9 @@ def reduce_background_set(db="KEGG"):
         plt.xlabel("Percentage of original background list")
         plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5))
         plt.tight_layout()
-        plt.savefig("background_list_reduction_proportion_Reactome.png", dpi=300)
+        plt.savefig("background_list_reduction_proportion_KEGG.png", dpi=300)
         plt.show()
 
-# reduce_background_set(db="Reactome")
+reduce_background_set(db="KEGG")
 
 # Mind the gap set

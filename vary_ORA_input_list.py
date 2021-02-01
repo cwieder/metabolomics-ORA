@@ -24,19 +24,19 @@ all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flat
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # param grid
-datasets = {"Auwerx": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx, [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
-            "Yamada": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+datasets = {"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx, [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
+            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
             "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
-            "Brown": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-            "Zamboni (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
-            "Zamboni (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
+            "Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
+            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
 
 print("Data import complete")
 
 def vary_dam_size():
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
-    for d in ["Auwerx", "Yamada", "Stevens", "Brown"]:
+    for d in ["Quirós", "Yachida", "Stevens", "Labbé"]:
         for m in multiple_test_options:
             t_test_res = utils.t_tests(datasets[d][4].iloc[:, :-1], datasets[d][4]["Group"], m)
             t_test_res = t_test_res.sort_values(by=["P-adjust"])
@@ -56,7 +56,7 @@ def vary_dam_size():
         plt.style.use("seaborn")
         cols = sns.color_palette("deep", 8)
 
-        for num, i in enumerate(["Auwerx", "Yamada", "Stevens", "Brown"]):
+        for num, i in enumerate(["Quirós", "Yachida", "Stevens", "Labbé"]):
             ax1.plot(res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['Cutoff_P'].to_numpy().astype('int'),
                          res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['n_p_less_01'].tolist(), 'o', label=i+" Bonferroni", linestyle='-', color=cols[num])
             ax1.plot(res_df_FDR_BH[res_df_FDR_BH["Dataset"] == i]['Cutoff_P'].to_numpy().astype('int'),
@@ -76,9 +76,9 @@ def vary_p_val_cutoff():
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
 
-    # Import files for zamboni data
-    n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
-    p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
+    # Import files for Fuhrer data
+    n_zscore = pd.read_csv("../Fuhrer/mod_zscore_neg_CW.csv", index_col=0)
+    p_zscore = pd.read_csv("../Fuhrer/mod_zscore_pos_CW.csv", index_col=0)
     # remove unannotated
     n_zscore = n_zscore[n_zscore.index.notnull()]
     p_zscore = p_zscore[p_zscore.index.notnull()]
@@ -91,7 +91,7 @@ def vary_p_val_cutoff():
         print(d)
         for p in proportion_of_bg:
             print(p)
-            if d.startswith("Zamboni"):
+            if d.startswith("Fuhrer"):
                 strain = d[d.find("(")+1:d.find(")")]
                 neg_col = n_zscore.loc[:, strain].to_frame(name="z-score")
                 neg_col["annotation"] = neg_col.index.map(annotations_neg)
@@ -123,12 +123,12 @@ def vary_p_val_cutoff():
         plt.style.use("seaborn")
         cols = sns.color_palette("deep", 8)
 
-        for num, i in enumerate(["Auwerx", "Yamada", "Stevens", "Brown"]):
+        for num, i in enumerate(["Quirós", "Yachida", "Stevens", "Labbé"]):
             ax1.plot(res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['Cutoff_P'].to_list(),
                          res_df_bonferroni[res_df_bonferroni["Dataset"] == i]['n_p_less_01'].tolist(), 'o', label=i+" Bonferroni", linestyle='-', color=cols[num])
             ax1.plot(res_df_FDR_BH[res_df_FDR_BH["Dataset"] == i]['Cutoff_P'].to_list(),
                          res_df_FDR_BH[res_df_FDR_BH["Dataset"] == i]['n_p_less_01'].tolist(), 'o', label=i+" FDR BH", linestyle='--', color=cols[num])
-        for num, i in enumerate(["Zamboni (dcuS)", "Zamboni (yfgM)"]):
+        for num, i in enumerate(["Fuhrer (dcuS)", "Fuhrer (yfgM)"]):
             ax1.plot(res_df_Zamboni[res_df_Zamboni["Dataset"] == i]['Cutoff_P'].to_list(),
                      res_df_Zamboni[res_df_Zamboni["Dataset"] == i]['n_p_less_01'].tolist(), 'o', label=i,
                      linestyle='-', color=cols[4+num])
@@ -145,7 +145,7 @@ def vary_pval():
     cutoffs = [0.001, 0.005, 0.01, 0.05, 0.1]
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
-    for d in ["Auwerx", "Brown", "Yamada", "Stevens"]:
+    for d in ["Quirós", "Labbé", "Yachida", "Stevens"]:
         for c in cutoffs:
             for m in multiple_test_options:
                 t_test_res = utils.t_tests(datasets[d][4].iloc[:, :-1], datasets[d][4]["Group"], m)
@@ -159,6 +159,7 @@ def vary_pval():
     res_df_FDR_BH = res_df[res_df["Multiple_correction_method"] == "fdr_bh"]
     res_df_FDR_BH = res_df_FDR_BH.drop("Multiple_correction_method", axis=1)
     res_df_FDR_BH = res_df_FDR_BH.pivot(index='Dataset', columns=['Cutoff_P'], values='n_p_less_01')
+    print(res_df_FDR_BH)
     res_df_bonferroni = res_df[res_df["Multiple_correction_method"] == "bonferroni"]
     res_df_bonferroni = res_df_bonferroni.drop("Multiple_correction_method", axis=1)
     res_df_bonferroni = res_df_bonferroni.pivot(index='Dataset', columns=['Cutoff_P'],

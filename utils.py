@@ -194,7 +194,7 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     baseline_significant_paths.append(len(baseline_res[baseline_res["P-value"] < 0.1]["P-value"].tolist()))
     # q_vals.append(len(baseline_res[baseline_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
 
-    for i in range(0, 5):
+    for i in range(0, 100):
         if not keep_DEM:
             bg_list_reduced = np.random.choice(background_list, list_size, replace=False)
         else:
