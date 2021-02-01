@@ -150,8 +150,9 @@ def stevens_data(db="KEGG"):
     return DEM, background_list, stevens_matrix_proc
 
 def zamboni_data(knockout, db="KEGG"):
-    n_zscore = pd.read_csv("../Zamboni/mod_zscore_neg_CW.csv", index_col=0)
-    p_zscore = pd.read_csv("../Zamboni/mod_zscore_pos_CW.csv", index_col=0)
+    # import modified z-scores
+    n_zscore = pd.read_csv("example_data/Fuhrer_mod_zscore_neg_CW.csv.zip", index_col=0)
+    p_zscore = pd.read_csv("example_data/Fuhrer_mod_zscore_pos_CW.csv.zip", index_col=0)
 
     # remove unannotated
     n_zscore = n_zscore[n_zscore.index.notnull()]
