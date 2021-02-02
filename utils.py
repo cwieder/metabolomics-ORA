@@ -236,7 +236,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = mat_unannotated.columns.tolist()
         n_misidentified = int(len(metabolites) * (percentage / 100))
-        for i in range(0, 1):
+        for i in range(0, 100):
             # Randomly replace n compounds
             metabolites_to_replace = np.random.choice(metabolites, n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds, background_list), n_misidentified, replace=False)
@@ -256,7 +256,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     elif zamboni == True:
         metabolites = processed_matrix.columns.tolist()
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
-        for i in range(0, 1):
+        for i in range(0, 100):
             metabolites_to_replace = np.random.choice(list(set(metabolites)), n_misidentified, replace=False)
             replacement_compounds = np.random.choice(np.setdiff1d(organism_compounds,
                                                                   [background_list + list(metabolites_to_replace)]), n_misidentified,

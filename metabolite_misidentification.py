@@ -44,7 +44,7 @@ Reactome_compounds_masses = pd.read_csv("CHEBI_compounds_masses.csv", names=["co
 
 datasets = {"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx, [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)], KEGG_compounds_masses],
             "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)], KEGG_compounds_masses],
-            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
+            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
             "Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)], KEGG_compounds_masses],
             "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)], KEGG_compounds_masses],
             "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)], KEGG_compounds_masses]}
@@ -89,7 +89,7 @@ def random_misidentification(db="KEGG"):
                      simulation_res[simulation_res["Dataset"] == i]['n_p_less_0.1'],
                      yerr=simulation_res[simulation_res["Dataset"] == i]['p_std'],
                      label=i, fmt='o', linestyle="solid", capsize=5,  markeredgewidth=2, markersize=4)
-    # plt.title("Reactome", fontsize=14)
+    plt.title("Random misidentification", fontsize=14)
     plt.legend()
     plt.ylabel("Mean number of pathways significant at P < 0.1 \n based on 100 random permutations")
     plt.xlabel("Percentage of metabolites misidentified")
