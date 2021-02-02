@@ -99,7 +99,7 @@ def random_misidentification(db="KEGG"):
 random_misidentification(db="KEGG")
 
 # Parameter grid for TPR/FPR heatmaps. Numbers correspond to indexes in datasets param grids.
-param_grid_heatmaps = {"random": [utils.misidentify_metabolites, 4, 3, 1, 2, [i for i in range(0, 70, 10)]],
+param_grid_heatmaps = {"random": [utils.misidentify_metabolites, 4, 3, 1, 2, [i for i in range(10, 70, 10)]],
                        "mass": [utils.misidentify_metabolites_by_mass, 4, 2, 7, 3, [i for i in range(1, 7, 1)]],
                        "formula": [utils.misidentify_metabolites_by_formula, 4, 2, 7, 3, [i for i in range(1, 6, 1)]]}
 
@@ -115,16 +115,16 @@ def TPR_heatmap(pg, fname, db="KEGG"):
         d_sets = datasets_reactome
     results_TPR = []
     results_FPR = []
-    for d in ["Quirós", "Labbé", "Yachida", "Fuhrer (dcuS)", "Fuhrer (yfgM)"]:
+    for d in d_sets.keys():
         print(d)
         if d.startswith("Fuhrer"):
             original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
-                                                    Fuhrer=True)[4][0]
+                                                    zamboni=True)[4][0]
 
             for i in pg[5]:
                 print(i)
                 res = pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
-                                                    Fuhrer=True)[4]
+                                                    zamboni=True)[4]
                 misidentified_pathways = res
                 pathway_fractions_TPR = []
                 pathway_fractions_FPR = []
@@ -141,10 +141,10 @@ def TPR_heatmap(pg, fname, db="KEGG"):
                 results_FPR.append([d, i, avg_fraction_FPR])
 
         else:
-            original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], Fuhrer=False)[4][0]
+            original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4][0]
             for i in pg[5]:
                 print(i)
-                res = pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], Fuhrer=False)[4]
+                res = pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4]
                 misidentified_pathways = res
                 pathway_fractions_TPR = []
                 pathway_fractions_FPR = []
@@ -181,8 +181,8 @@ def TPR_heatmap(pg, fname, db="KEGG"):
     plt.show()
 
 TPR_heatmap(param_grid_heatmaps["random"], "random_misidentification_heatmap_KEGG_new.png", db="KEGG")
-TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
-TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
+# TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
+# TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
 
 def plot_ROC(pg, fname, db="KEGG"):
     """
