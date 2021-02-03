@@ -68,13 +68,14 @@ def vary_pval():
     res_df_FDR_BH = res_df[res_df["Multiple_correction_method"] == "fdr_bh"]
     res_df_FDR_BH = res_df_FDR_BH.drop("Multiple_correction_method", axis=1)
     res_df_FDR_BH = res_df_FDR_BH.pivot(index='Dataset', columns=['Cutoff_P'], values='n_p_less_01')
+    res_df_FDR_BH = res_df_FDR_BH.reindex(list(datasets.keys()))
     print(res_df_FDR_BH)
     res_df_bonferroni = res_df[res_df["Multiple_correction_method"] == "bonferroni"]
     res_df_bonferroni = res_df_bonferroni.drop("Multiple_correction_method", axis=1)
     res_df_bonferroni = res_df_bonferroni.pivot(index='Dataset', columns=['Cutoff_P'],
                                                 values='n_p_less_01')
+    res_df_bonferroni = res_df_bonferroni.reindex(list(datasets.keys()))
 
-    #
     with plt.style.context('seaborn'):
         sns.set_palette("Blues_r")
         fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True)
@@ -84,11 +85,11 @@ def vary_pval():
         ax1.set_ylabel("Number of pathways significant at P ≤ 0.1", fontsize=13)
         # plt.ylabel("Number of significant pathway at P < 0.1")
         # plt.xlabel("Dataset")
-        ax1.legend(title="Q-value threshold", fontsize=11)
+        ax1.legend(title="Q-value threshold (≤)", fontsize=11)
 
         res_df_bonferroni.plot.bar(ax=ax2)
         ax2.set_title('Bonferroni', fontsize=14)
-        ax2.legend(title="Q-value threshold", fontsize=11)
+        ax2.legend(title="Q-value threshold (≤)", fontsize=11)
         # plt.title('Bonferroni')
         plt.tight_layout()
         plt.savefig("../Figures/vary_pvalue_cutoff.png", dpi=600)
