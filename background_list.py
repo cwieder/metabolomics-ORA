@@ -18,19 +18,19 @@ from matplotlib import gridspec
 
 # Import KEGG datasets
 # DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
-# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
+DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
 # DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
-# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
+DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
 # DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
 # DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import BioCyc datasets
-DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Cyc")
-DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Cyc")
-DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Cyc")
-DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Cyc")
-DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Cyc")
-DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Cyc")
+# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Cyc")
+# DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="Cyc")
+# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="Cyc")
+# DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="Cyc")
+# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="Cyc")
+# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Cyc")
 
 # Import KEGG pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
@@ -54,26 +54,26 @@ BioCyc_eco_pathways = pd.read_csv("Metacyc_EColi_pathways.csv")
 all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
-datasets = {"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
-            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
-            "Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
-            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
-            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
+datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
+            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg]}
+            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            # "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
+            # "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
+            # "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
 
-datasets_reactome = {"Quirós": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
-                     "Yachida": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
-                     "Stevens": [DEM_stevens, background_stevens, Reactome_human_pathways, all_reactome_human_bg],
-                     "Labbé": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg],
-                     "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
-                     "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
-
-datasets_biocyc = {"Quirós": [DEM_auwerx, background_auwerx, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Yachida": [DEM_yamada, background_yamada, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Stevens": [DEM_stevens, background_stevens, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Labbé": [DEM_brown, background_brown, BioCyc_human_pathways, all_biocyc_human_bg],
-                   "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, BioCyc_eco_pathways, all_biocyc_eco_bg],
-                   "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, BioCyc_eco_pathways, all_biocyc_eco_bg]}
+# datasets_reactome = {"Quirós": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
+#                      "Yachida": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
+#                      "Stevens": [DEM_stevens, background_stevens, Reactome_human_pathways, all_reactome_human_bg],
+#                      "Labbé": [DEM_brown, background_brown, Reactome_mouse_pathways, all_reactome_mouse_bg],
+#                      "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, Reactome_human_pathways, all_reactome_human_bg],
+#                      "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, Reactome_human_pathways, all_reactome_human_bg]}
+#
+# datasets_biocyc = {"Quirós": [DEM_auwerx, background_auwerx, BioCyc_human_pathways, all_biocyc_human_bg],
+#                    "Yachida": [DEM_yamada, background_yamada, BioCyc_human_pathways, all_biocyc_human_bg],
+#                    "Stevens": [DEM_stevens, background_stevens, BioCyc_human_pathways, all_biocyc_human_bg],
+#                    "Labbé": [DEM_brown, background_brown, BioCyc_human_pathways, all_biocyc_human_bg],
+#                    "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, BioCyc_eco_pathways, all_biocyc_eco_bg],
+#                    "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, BioCyc_eco_pathways, all_biocyc_eco_bg]}
 
 print("Data processing complete.")
 
@@ -95,7 +95,7 @@ def plot_log_pvalues(db="KEGG"):
         ora_res_all_pvals = np.negative(np.log10(ora_res_all["P-value"].tolist()))
         plt_dict[i] = [ora_res_pvals, ora_res_all_pvals]
 
-    plt.figure(figsize=(6, 6), dpi=300)
+    plt.figure(figsize=(6, 6), dpi=600)
     sns.set_style("darkgrid")
     sns.set_palette("muted")
     for i in plt_dict.keys():
@@ -106,17 +106,21 @@ def plot_log_pvalues(db="KEGG"):
         ax = sns.regplot(x=x, y=y,
                          ci=95,
                          scatter_kws={'s': 3})
+    # set dotted lines for TOF-MS data
+    ax.lines[3].set_linestyle("--")
+    ax.lines[4].set_linestyle("--")
+    ax.lines[5].set_linestyle("--")
     ax.set_xlabel("Specified background list (-log10 P-value)",
-                  fontsize=12)
-    ax.set_ylabel("All " + "BioCyc" + " compounds (organism-specific) (-log10 P-value)",
-                  fontsize=12)
-    ax.set(ylim=(0, 8), xlim=(0, 8))
-    ax.legend(plt_dict.keys())
+                  fontsize=13)
+    ax.set_ylabel("All " + "KEGG" + " compounds (organism-specific) (-log10 P-value)",
+                  fontsize=13)
+    ax.set(ylim=(0, 10), xlim=(0, 10))
+    ax.legend(plt_dict.keys(), fontsize=11)
     ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
-    plt.title("BioCyc")
-    plt.savefig("../Figures/logp_plot_Cyc.png", dpi=300)
+    # plt.title("KEGG")
+    plt.savefig("../Figures/logp_plot_KEGG.png", dpi=600)
     plt.show()
 
     # fig, ax = plt.subplots(3,2)
@@ -141,7 +145,7 @@ def plot_log_pvalues(db="KEGG"):
     # plt.show()
 
 
-plot_log_pvalues(db="Cyc")
+# plot_log_pvalues(db="KEGG")
 
 
 def plot_grouped_stacked_bar(db="KEGG"):
@@ -161,11 +165,9 @@ def plot_grouped_stacked_bar(db="KEGG"):
         n_q_less_01 = len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist())
         n_p_less_01_all = len(ora_res_all[ora_res_all["P-value"] < 0.1]["P-value"].tolist())
         n_q_less_01_all = len(ora_res_all[ora_res_all["P-adjust"] < 0.1]["P-adjust"].tolist())
-        print(n_p_less_01)
-        print(n_p_less_01_all)
         df = pd.DataFrame([[n_p_less_01, n_q_less_01], [n_p_less_01_all, n_q_less_01_all]],
                           index=["Specified background list", "All "+ db + " compounds"], columns=["P", "Q"])
-        df["Name"] = "df" + i
+        df["Name"] = i
         dataframes.append(df)
 
     dfall = pd.concat([pd.melt(i.reset_index(),
@@ -176,33 +178,37 @@ def plot_grouped_stacked_bar(db="KEGG"):
     dfall.set_index(["Name", "index", "variable"], inplace=True)
     dfall["vcs"] = dfall.groupby(level=["Name", "index"]).cumsum()
     dfall.reset_index(inplace=True)
+    print(dfall)
     sns.set_style("dark")
     sns.set_palette("muted")
-    plt.figure(figsize=(7, 5), dpi=300)
+    plt.figure(figsize=(7, 5), dpi=600)
     for i, g in enumerate(dfall.groupby("variable")):
         ax = sns.barplot(data=g[1],
                          x="index",
                          y="vcs",
                          hue="Name",
                          zorder=-i,  # so first bars stay on top
-                         edgecolor="k")
-    ax.set_xlabel('Background list used in ORA')
-    ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)')
-    labels = ["Quirós", "Yachida", "Stevens", "Labbé", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]
+                         edgecolor="k",
+                         ci=None)
+    ax.set_xlabel('Background list used in ORA', fontsize=13)
+    # ax.set_xticks(x, labels, rotation='vertical')
+    ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)', fontsize=13)
+    # labels = ["Quirós", "Yachida", "Stevens", "Labbé", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]
     h, l = ax.get_legend_handles_labels()
-    plt.legend(h[0:6], labels, title="Dataset", bbox_to_anchor=(1.4, 1), loc="upper right")
+    plt.legend(h[0:6], l, title="Dataset", bbox_to_anchor=(1.4, 1), loc="upper right",
+               fontsize=11)
     # Set hatches for q-values bars
     plt.subplots_adjust(right=0.8)
     bars = ax.patches
-    for i in range(12, 24, 1):
-        bars[i].set_hatch('//')
+    # for i in range(12, 24, 1):
+    #     bars[i].set_hatch('//')
     # plt.title(db, fontsize=14)
     plt.tight_layout()
     plt.savefig("../Figures/all_vs_experimental_barchart_KEGG.png", dpi=300)
     plt.show()
 
 
-# plot_grouped_stacked_bar(db="KEGG")
+plot_grouped_stacked_bar(db="KEGG")
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
