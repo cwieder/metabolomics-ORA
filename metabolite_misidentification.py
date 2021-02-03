@@ -212,8 +212,8 @@ def TPR_heatmap(pg, fname, db="KEGG"):
     plt.show()
 
 # TPR_heatmap(param_grid_heatmaps["random"], "random_misidentification_heatmap_KEGG_new.png", db="KEGG")
-# TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
-TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
+TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
+# TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
 
 def plot_ROC(pg, fname, db="KEGG"):
     """
@@ -365,7 +365,7 @@ def misidentification_mass_plot(db="KEGG"):
     plt.show()
 
 
-misidentification_mass_plot(db="KEGG")
+# misidentification_mass_plot(db="KEGG")
 
 
 def misidentification_formula_plot(db="KEGG"):
@@ -419,4 +419,4 @@ def misidentification_formula_plot(db="KEGG"):
     plt.show()
 
 
-# misidentification_formula_plot(db="KEGG")
+misidentification_formula_plot(db="KEGG")
