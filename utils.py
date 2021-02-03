@@ -411,7 +411,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 1):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -443,7 +443,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 1):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
