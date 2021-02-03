@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from matplotlib import gridspec
+import matplotlib.patches as mpatches
 
 # Import the relevant datasets
 # Import Reactome datasets
@@ -17,12 +18,12 @@ from matplotlib import gridspec
 # DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Reactome")
 
 # Import KEGG datasets
-# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
-# DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
+DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
 DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
-# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
-# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import BioCyc datasets
 # DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Cyc")
@@ -55,11 +56,11 @@ all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].val
 all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
-            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg]}
-            # "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
-            # "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
-            # "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
-            # "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
+            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
+            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
+            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
+            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
 
 # datasets_reactome = {"Quirós": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
 #                      "Yachida": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
@@ -165,7 +166,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
         n_q_less_01 = len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist())
         n_p_less_01_all = len(ora_res_all[ora_res_all["P-value"] < 0.1]["P-value"].tolist())
         n_q_less_01_all = len(ora_res_all[ora_res_all["P-adjust"] < 0.1]["P-adjust"].tolist())
-        df = pd.DataFrame([[n_p_less_01, n_q_less_01], [n_p_less_01_all, n_q_less_01_all]],
+        df = pd.DataFrame([[n_q_less_01, n_p_less_01], [n_q_less_01_all, n_p_less_01_all]],
                           index=["Specified background list", "All "+ db + " compounds"], columns=["P", "Q"])
         df["Name"] = i
         dataframes.append(df)
@@ -181,12 +182,12 @@ def plot_grouped_stacked_bar(db="KEGG"):
     print(dfall)
     sns.set_style("dark")
     sns.set_palette("muted")
-    plt.figure(figsize=(7, 5), dpi=600)
+    plt.figure(figsize=(6, 6), dpi=600)
     for i, g in enumerate(dfall.groupby("variable")):
         ax = sns.barplot(data=g[1],
-                         x="index",
+                         x="Name",
                          y="vcs",
-                         hue="Name",
+                         hue="index",
                          zorder=-i,  # so first bars stay on top
                          edgecolor="k",
                          ci=None)
@@ -194,17 +195,36 @@ def plot_grouped_stacked_bar(db="KEGG"):
     # ax.set_xticks(x, labels, rotation='vertical')
     ax.set_ylabel('Number of significant pathways at \n P < 0.1 (solid bars) and Q < 0.1 (hatched bars)', fontsize=13)
     # labels = ["Quirós", "Yachida", "Stevens", "Labbé", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]
-    h, l = ax.get_legend_handles_labels()
-    plt.legend(h[0:6], l, title="Dataset", bbox_to_anchor=(1.4, 1), loc="upper right",
-               fontsize=11)
+
     # Set hatches for q-values bars
-    plt.subplots_adjust(right=0.8)
+    # plt.subplots_adjust(right=0.8)
+    plt.xticks(rotation=45)
     bars = ax.patches
-    # for i in range(12, 24, 1):
-    #     bars[i].set_hatch('//')
+    print(len(bars))
+    for i in range(6, 12):
+        bars[i].set_color(sns.color_palette("deep", 6)[i-6])
+        bars[i].set_edgecolor("k")
+    for i in range(0, 6):
+        bars[i].set_color(sns.color_palette("pastel", 6)[i])
+        bars[i].set_edgecolor("k")
+    for i in range(12, 18):
+        bars[i].set_color(sns.color_palette("pastel", 6)[i-12])
+        bars[i].set_edgecolor("k")
+    for i in range(18, 24):
+        bars[i].set_color(sns.color_palette("deep", 6)[i-18])
+        bars[i].set_edgecolor("k")
+    for i in range(0, 12, 1):
+        bars[i].set_hatch('//')
+
+    specified_patch = mpatches.Patch(color='darkgray', label='Light colours: specified background set')
+    unspecified_patch = mpatches.Patch(color='dimgray', label='Dark colours: all KEGG compounds')
+    hatched = mpatches.Patch(facecolor='white', hatch="//", label='Hatched bars: pathways significant at Q ≤ 0.1', edgecolor='k', alpha=0.5)
+    solid = mpatches.Patch(facecolor='white', label='Solid bars: pathways significant at P ≤ 0.1', edgecolor='k', alpha=0.5)
+    plt.legend(handles=[specified_patch, unspecified_patch, hatched, solid], fontsize=11)
+
     # plt.title(db, fontsize=14)
     plt.tight_layout()
-    plt.savefig("../Figures/all_vs_experimental_barchart_KEGG.png", dpi=300)
+    plt.savefig("../Figures/all_vs_experimental_barchart_KEGG.png", dpi=600)
     plt.show()
 
 
