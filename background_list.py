@@ -167,7 +167,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
         n_p_less_01_all = len(ora_res_all[ora_res_all["P-value"] < 0.1]["P-value"].tolist())
         n_q_less_01_all = len(ora_res_all[ora_res_all["P-adjust"] < 0.1]["P-adjust"].tolist())
         df = pd.DataFrame([[n_q_less_01, n_p_less_01], [n_q_less_01_all, n_p_less_01_all]],
-                          index=["Specified background list", "All "+ db + " compounds"], columns=["P", "Q"])
+                          index=["Specified background list", "All " + db + " compounds"], columns=["P", "Q"])
         df["Name"] = i
         dataframes.append(df)
 
@@ -202,24 +202,26 @@ def plot_grouped_stacked_bar(db="KEGG"):
     bars = ax.patches
     print(len(bars))
     for i in range(6, 12):
-        bars[i].set_color(sns.color_palette("deep", 6)[i-6])
+        bars[i].set_color(sns.color_palette("deep", 6)[i - 6])
         bars[i].set_edgecolor("k")
     for i in range(0, 6):
         bars[i].set_color(sns.color_palette("pastel", 6)[i])
         bars[i].set_edgecolor("k")
     for i in range(12, 18):
-        bars[i].set_color(sns.color_palette("pastel", 6)[i-12])
+        bars[i].set_color(sns.color_palette("pastel", 6)[i - 12])
         bars[i].set_edgecolor("k")
     for i in range(18, 24):
-        bars[i].set_color(sns.color_palette("deep", 6)[i-18])
+        bars[i].set_color(sns.color_palette("deep", 6)[i - 18])
         bars[i].set_edgecolor("k")
     for i in range(0, 12, 1):
         bars[i].set_hatch('//')
 
     specified_patch = mpatches.Patch(color='darkgray', label='Light colours: specified background set')
     unspecified_patch = mpatches.Patch(color='dimgray', label='Dark colours: all KEGG compounds')
-    hatched = mpatches.Patch(facecolor='white', hatch="//", label='Hatched bars: pathways significant at Q ≤ 0.1', edgecolor='k', alpha=0.5)
-    solid = mpatches.Patch(facecolor='white', label='Solid bars: pathways significant at P ≤ 0.1', edgecolor='k', alpha=0.5)
+    hatched = mpatches.Patch(facecolor='white', hatch="//", label='Hatched bars: pathways significant at Q ≤ 0.1',
+                             edgecolor='k', alpha=0.5)
+    solid = mpatches.Patch(facecolor='white', label='Solid bars: pathways significant at P ≤ 0.1', edgecolor='k',
+                           alpha=0.5)
     plt.legend(handles=[specified_patch, unspecified_patch, hatched, solid], fontsize=11)
 
     # plt.title(db, fontsize=14)
@@ -228,7 +230,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
     plt.show()
 
 
-plot_grouped_stacked_bar(db="KEGG")
+# plot_grouped_stacked_bar(db="KEGG")
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
@@ -263,23 +265,37 @@ def reduce_background_set(db="KEGG"):
     simulation_res = res_df
     simulation_res_keep_DEM = res_df_keep_DEM
     with plt.style.context('seaborn'):
-        fig = plt.figure(figsize=(10, 6), dpi=300)
+        fig = plt.figure(figsize=(10, 6), dpi=600)
         gs = gridspec.GridSpec(1, 2, width_ratios=[3, 2])
         ax1 = fig.add_subplot(gs[0])
         ax2 = fig.add_subplot(gs[1], sharey=ax1)
-        ax1.set_title("Random background list reduction")
+        ax1.set_title("Random background list reduction", fontsize=14)
         for i in d_sets.keys():
-            ax1.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
-                         simulation_res[simulation_res["Dataset"] == i]['mean_proportion_p_vals'],
-                         yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
-                         label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
+            if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
+                ax1.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
+                             simulation_res[simulation_res["Dataset"] == i]['mean_proportion_p_vals'],
+                             yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
+                             label=i, fmt='o', linestyle="--", capsize=5, markeredgewidth=2, markersize=4)
+            else:
+                ax1.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
+                             simulation_res[simulation_res["Dataset"] == i]['mean_proportion_p_vals'],
+                             yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
+                             label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax1.set_xlim(100, 10)
-        ax2.set_title("No DA metabolite removal")
+        ax2.set_title("No DA metabolite removal", fontsize=14)
         for i in d_sets.keys():
-            ax2.errorbar(simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['Percentage reduction'],
-                         simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['mean_proportion_p_vals'],
-                         yerr=simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['sd_proportion_p_vals'],
-                         label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
+            if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
+                ax2.errorbar(simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['Percentage reduction'],
+                             simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['mean_proportion_p_vals'],
+                             yerr=simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i][
+                                 'sd_proportion_p_vals'],
+                             label=i, fmt='o', linestyle="--", capsize=5, markeredgewidth=2, markersize=4)
+            else:
+                ax2.errorbar(simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['Percentage reduction'],
+                             simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['mean_proportion_p_vals'],
+                             yerr=simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i][
+                                 'sd_proportion_p_vals'],
+                             label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax2.set_xlim(100, 50)
         # fig.suptitle("Reactome", fontsize=14)
         handles, labels = ax1.get_legend_handles_labels()
@@ -289,13 +305,15 @@ def reduce_background_set(db="KEGG"):
         plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
         plt.grid(False)
 
-        plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)")
-        plt.xlabel("Percentage of original background list")
-        plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)",
+                   fontsize=13)
+        plt.xlabel("Percentage of original background list", fontsize=13)
+        plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), fontsize=11)
         plt.tight_layout()
-        plt.savefig("background_list_reduction_proportion_KEGG.png", dpi=300)
+        plt.savefig("background_list_reduction_proportion_KEGG.png", dpi=600)
         plt.show()
 
-# reduce_background_set(db="KEGG")
+
+reduce_background_set(db="KEGG")
 
 # Mind the gap set
