@@ -234,8 +234,8 @@ def plot_grouped_stacked_bar(db="KEGG"):
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
-    percentage_reductions_keep_DEM = [i for i in range(100, 0, -10)]
-    percentage_reductions = [i for i in range(100, 0, -10)]
+    percentage_reductions_keep_DEM = [i for i in range(100, 5, -5)]
+    percentage_reductions = [i for i in range(100, 5, -5)]
     d_sets = datasets
     if db == "Reactome":
         d_sets = datasets_reactome
@@ -283,7 +283,7 @@ def reduce_background_set(db="KEGG"):
                              yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
                              label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax1.set_xlim(100, 10)
-        ax1.set_xlabel("Percentage of compounds in experiment")
+        ax1.set_xlabel("Percentage of original compounds in experiment")
         ax2.set_title("Random background list reduction", fontsize=14)
         for i in d_sets.keys():
             if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
@@ -299,7 +299,7 @@ def reduce_background_set(db="KEGG"):
                                  'sd_proportion_p_vals'],
                              label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax2.set_xlim(100, 10)
-        ax2.set_xlabel("Percentage of compounds in background list")
+        ax2.set_xlabel("Percentage of original compounds in background list")
         # fig.suptitle("Reactome", fontsize=14)
         handles, labels = ax1.get_legend_handles_labels()
         # plt.subplots_adjust(right=0.7)
