@@ -54,6 +54,7 @@ def vary_pval():
                         pval = stats.norm.cdf(zscore)
                         if pval <= c:
                             DA_metabolites.append(x[0])
+                            # TODO multiple testing correction
                     ora_res = utils.over_representation_analysis(DA_metabolites, datasets[d][1], datasets[d][2])
                     res_list.append([d, c, m, len(ora_res[ora_res["P-value"] <= 0.1]["P-value"].tolist())])
                 else:

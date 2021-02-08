@@ -19,11 +19,17 @@ KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str
 KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
 
 
-cols = mat_dcuS.columns.tolist()
+cols = mat_brown.columns.tolist()
 print(logp_all.columns)
 
 
 matching_id = logp_all[logp_all["kegg_id"].isin(cols)]
+
+print(np.median(matching_id['logp']))
+print(np.mean(matching_id['logp']))
+print(np.std(matching_id['logp']))
+print(np.min(matching_id['logp']))
+print(np.max(matching_id['logp']))
 
 plt.style.use("seaborn")
 plt.hist(matching_id["logp"], bins=20)
@@ -69,15 +75,15 @@ def log_p_venn(cutoff, mat, pathways):
     # venn2_circles(subsets = (set(polar_pathways),
     #                         set(nonpolar_pathways)),
     #               linestyle='solid', linewidth=0.5, color='k')
-    # plt.annotate("\n".join(common_names), xy=venn.get_label_by_id('110').get_position() - np.array([-0.01, -0.25]), xytext=(100,70),
-    # ha='center', textcoords='offset points', bbox=dict(boxstyle='round,pad=0.5', fc='gray', alpha=0.1),
-    # arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.5',color='gray', linewidth=1))
+    plt.annotate("\n".join(common_names), xy=venn.get_label_by_id('110').get_position() - np.array([-0.01, -0.25]), xytext=(100,70),
+    ha='center', textcoords='offset points', bbox=dict(boxstyle='round,pad=0.5', fc='gray', alpha=0.1),
+    arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.5',color='gray', linewidth=1))
 
     plt.tight_layout()
     # plt.savefig("../Figures/logp_brown_venn.png", dpi=300)
     plt.show()
 
-# log_p_venn(0, mat_yfgM, KEGG_eco_pathways)
+log_p_venn(-2, mat_yamada, KEGG_human_pathways)
 
 def log_p_venn_zamboni(cutoff, mat, pathways):
     polar = matching_id[matching_id["logp"] < cutoff]
@@ -97,6 +103,7 @@ def log_p_venn_zamboni(cutoff, mat, pathways):
         if x[1] > 6 or x[1] < -6:
             DEM_nonpolar.append(x[0])
     ora_nonpolar = utils.over_representation_analysis(DEM_nonpolar, nonpolar_mat.columns.tolist(), pathways)
+    print(ora_nonpolar[ora_nonpolar["P-value"] <= 0.1])
 
     polar_pathways = ora_polar[ora_polar["P-value"] <= 0.1]["Pathway_ID"].tolist()
     nonpolar_pathways = ora_nonpolar[ora_nonpolar["P-value"] <= 0.1]["Pathway_ID"].tolist()
@@ -116,12 +123,12 @@ def log_p_venn_zamboni(cutoff, mat, pathways):
     # venn2_circles(subsets = (set(polar_pathways),
     #                         set(nonpolar_pathways)),
     #               linestyle='solid', linewidth=0.5, color='k')
-    plt.annotate("\n".join(common_names), xy=venn.get_label_by_id('110').get_position() - np.array([-0.01, -0.25]), xytext=(100,70),
-    ha='center', textcoords='offset points', bbox=dict(boxstyle='round,pad=0.5', fc='gray', alpha=0.1),
-    arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.5',color='gray', linewidth=1))
+    # plt.annotate("\n".join(common_names), xy=venn.get_label_by_id('110').get_position() - np.array([-0.01, -0.25]), xytext=(100,70),
+    # ha='center', textcoords='offset points', bbox=dict(boxstyle='round,pad=0.5', fc='gray', alpha=0.1),
+    # arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.5',color='gray', linewidth=1))
 
     plt.tight_layout()
-    # plt.savefig("../Figures/logp_brown_venn.png", dpi=300)
+    # plt.savefig("../Figures/logp_brown_venn.png", dpi=600)
     plt.show()
 
-log_p_venn_zamboni(0, mat_dcuS, KEGG_eco_pathways)
+# log_p_venn_zamboni(0, mat_brown, KEGG_mouse_pathways)

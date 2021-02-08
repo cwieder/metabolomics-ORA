@@ -4,6 +4,7 @@ import utils
 import re
 from bioservices import *
 import pickle
+import scipy.stats as stats
 
 kegg_db = KEGG(verbose=False)
 
@@ -100,7 +101,9 @@ def brown_data(db="KEGG"):
     ttest_res = utils.t_tests(mat_proc.iloc[:, :-1], mat_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].dropna().tolist()
     background = mat_proc.columns.tolist()[:-1]
+
     return DEM, background, mat_proc
+
 
 def stevens_data(db="KEGG"):
     md_raw = pd.read_csv("example_data/Stevens_metadata.txt", sep="\t")
@@ -147,7 +150,9 @@ def stevens_data(db="KEGG"):
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background_list = stevens_matrix_proc.columns.tolist()
+
     return DEM, background_list, stevens_matrix_proc
+
 
 def zamboni_data(knockout, db="KEGG"):
     # import modified z-scores
@@ -275,8 +280,9 @@ def zamboni_data(knockout, db="KEGG"):
     # for x in all_annotations_df.itertuples():
     #     if x[3] > 6 or x[3] < -6:
     #         dem_count.append(x[2])
-    # print(len(set(dem_count)))
-
+    # mat_pval = mat
+    # mat_pval.iloc[0, :] = [stats.norm.cdf(i) for i in mat_pval.iloc[0, :]]
+    # mat_pval.T.to_csv("Zamboni_dcuS_for_IPA.csv")
     return DEM, background_list_all_annotations, mat
 
 def auwerx_data(db="KEGG"):

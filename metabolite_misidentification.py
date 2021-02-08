@@ -98,7 +98,7 @@ def random_misidentification(db="KEGG"):
     # res_df.to_csv("Metabolite_misidentification_simulation_random_Reactome.csv")
 
     simulation_res = res_df
-    plt.figure(dpi=600)
+    plt.figure(figsize=(5, 4), dpi=600)
     plt.style.use("seaborn")
     for i in d_sets.keys():
         if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
@@ -208,12 +208,12 @@ def TPR_heatmap(pg, fname, db="KEGG"):
     plt.subplots_adjust(bottom=0.28)
     # plt.ylabel("Percentage metabolite misidentification (%)")
     plt.tight_layout()
-    plt.savefig(fname, dpi=600)
+    # plt.savefig(fname, dpi=600)
     plt.show()
 
 # TPR_heatmap(param_grid_heatmaps["random"], "random_misidentification_heatmap_KEGG_new.png", db="KEGG")
 # TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
-# TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
+TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
 
 def plot_ROC(pg, fname, db="KEGG"):
     """
@@ -299,7 +299,7 @@ def plot_ROC(pg, fname, db="KEGG"):
     plt.legend()
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.savefig(fname, dpi=300)
+    # plt.savefig(fname, dpi=300)
     plt.show()
 
     def auc_from_fpr_tpr(fpr, tpr, trapezoid=False):
@@ -311,7 +311,6 @@ def plot_ROC(pg, fname, db="KEGG"):
             area += (p1[0] - p0[0]) * ((p1[1] + p0[1]) / 2 if trapezoid else p0[1])
         return area
 
-# plot_ROC(param_grid_heatmaps["mass"], "KEGG_mass_ROC_5x.png", db="KEGG")
 
 
 def misidentification_mass_plot(db="KEGG"):
@@ -343,7 +342,7 @@ def misidentification_mass_plot(db="KEGG"):
 
     simulation_res = res_df
     print(simulation_res.head)
-    plt.figure(dpi=600)
+    plt.figure(figsize=(5, 4), dpi=600)
     plt.style.use("seaborn")
     for i in d_sets.keys():
         if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
@@ -361,7 +360,7 @@ def misidentification_mass_plot(db="KEGG"):
     plt.ylabel("Mean number of pathways significant at P < 0.1", fontsize=13)
     plt.xlabel("Percentage of metabolites misidentified", fontsize=13)
     plt.title("Misidentification by mass", fontsize=14)
-    plt.savefig("metabolite_misidentification_by_mass_KEGG.png", dpi=600)
+    # plt.savefig("metabolite_misidentification_by_mass_KEGG.png", dpi=600)
     plt.show()
 
 
@@ -397,7 +396,7 @@ def misidentification_formula_plot(db="KEGG"):
 
     simulation_res = res_df
     print(simulation_res.head)
-    plt.figure(dpi=600)
+    plt.figure(figsize=(5, 4), dpi=600)
     plt.style.use("seaborn")
     for i in d_sets.keys():
         if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
@@ -419,4 +418,4 @@ def misidentification_formula_plot(db="KEGG"):
     plt.show()
 
 
-misidentification_formula_plot(db="KEGG")
+# misidentification_formula_plot(db="KEGG")

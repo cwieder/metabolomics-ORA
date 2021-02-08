@@ -108,9 +108,10 @@ def t_tests(matrix, classes, multiple_correction_method):
                            columns=["Metabolite", "P-value", "P-adjust"])
     return results
 
+
 def over_representation_analysis(DEM_list, background_list, pathways_df):
     """
-    Function for over representation analysis
+    Function for over representation analysis using Fisher exact test (right tailed)
     :param DEM_list: List of differentially exprssed metabolite IDENTIFIERS
     :param background_list: background list of IDENTIFIERS
     :param pathways_df: pathway dataframe containing compound identifiers
@@ -143,17 +144,16 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
             compound_not_in_pathway_not_DEM = len(np.setdiff1d(np.setdiff1d(background_list, DEM_list), pathway_compounds))
             # compounds in background list not present in pathway
 
-            if (DEM_in_pathway and compound_in_pathway_not_DEM) == 0:
-                # ignore pathway if there are no DEM/background list compounds in that pathway
+            if DEM_in_pathway == 0:
+                # ignore pathway if there are no DEM compounds in that pathway
                 continue
             else:
                 # Create 2 by 2 contingency table
-                pathway_ratio.append(str(DEM_in_pathway) + "/" + str(len(pathway_compounds)))
+                pathway_ratio.append(str(DEM_in_pathway) + "/" + str(compound_in_pathway_not_DEM + DEM_in_pathway))
                 pathways_with_compounds.append(pathway)
                 pathway_names_with_compounds.append(pathway_dict[pathway])
                 contingency_table = np.array([[DEM_in_pathway, compound_in_pathway_not_DEM],
                                               [DEM_not_in_pathway, compound_not_in_pathway_not_DEM]])
-
                 # Run right tailed Fisher's exact test
                 oddsratio, pvalue = stats.fisher_exact(contingency_table, alternative="greater")
                 pvalues.append(pvalue)
@@ -191,7 +191,7 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     # proportion_of_original_pathways_signficant_q = []
 
     baseline_res = over_representation_analysis(DEM_list, background_list, pathways_df)
-    baseline_significant_paths.append(len(baseline_res[baseline_res["P-value"] < 0.1]["P-value"].tolist()))
+    baseline_significant_paths.append(len(baseline_res[baseline_res["P-value"] <= 0.1]["P-value"].tolist()))
     # q_vals.append(len(baseline_res[baseline_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
 
     for i in range(0, 100):
@@ -199,12 +199,11 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
             bg_list_reduced = np.random.choice(background_list, list_size, replace=False)
         else:
             bg_list_reduced = np.random.choice(np.setdiff1d(bg_list_without_dem, DEM_list), list_size, replace=False)
-            bg_list_reduced = bg_list_reduced.tolist() + DEM_list
         ora_res = over_representation_analysis(DEM_list, bg_list_reduced, pathways_df)
-        p_vals.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()))
+        p_vals.append(len(ora_res[ora_res["P-value"] <= 0.1]["P-value"].tolist()))
 #         print(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()), baseline_significant_paths[0])
-        proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())/baseline_significant_paths[0])
-        q_vals.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
+        proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-value"] <= 0.1]["P-value"].tolist())/baseline_significant_paths[0])
+        q_vals.append(len(ora_res[ora_res["P-adjust"] <= 0.1]["P-adjust"].tolist()))
         # proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-adjust"] < 0.1]["P-adjust"].tolist())/q_vals[0])
     mean_p_signficant_paths = np.mean(p_vals)
     mean_q_signficant_paths = np.mean(q_vals)
@@ -319,7 +318,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 3):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -352,7 +351,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
 
         print(len(misidentifiable_metabolites))
-        for i in range(0, 100):
+        for i in range(0, 3):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]

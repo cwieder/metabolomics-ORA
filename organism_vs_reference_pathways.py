@@ -23,12 +23,12 @@ all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flat
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # param grid
-datasets = {"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx, [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
-            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
-            "Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
-            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS, [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
+datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
+            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
+            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
+            "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
+            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
+            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
 
 print("Data import complete")
 
@@ -52,7 +52,7 @@ def organism_vs_reference(db="KEGG"):
     for k, v in plt_dict.items():
         print(len(v[0]), len(v[1]))
 
-    plt.figure(figsize=(6, 6), dpi=300)
+    plt.figure(figsize=(6, 6), dpi=600)
     sns.set_style("darkgrid")
     sns.set_palette("muted")
     for i in plt_dict.keys():
@@ -63,18 +63,21 @@ def organism_vs_reference(db="KEGG"):
         ax = sns.regplot(x=x, y=y,
                          ci=95,
                          scatter_kws={'s': 3})
-    ax.set_xlabel("Organism-specific pathway set (-log10 P-value)",
-                  fontsize=12)
-    ax.set_ylabel("Reference pathway set (-log10 P-value)",
-                  fontsize=12)
+    ax.lines[3].set_linestyle("--")
+    ax.lines[4].set_linestyle("--")
+    ax.lines[5].set_linestyle("--")
+    ax.set_xlabel("KEGG organism-specific pathway set (-log10 P-value)",
+                  fontsize=13)
+    ax.set_ylabel("KEGG reference pathway set (-log10 P-value)",
+                  fontsize=13)
     ax.set(ylim=(0, 8), xlim=(0, 8))
-    ax.legend(plt_dict.keys())
+    ax.legend(plt_dict.keys(), fontsize=11)
     ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle=':')
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
 
     # plt.title("KEGG: Organism-specific vs. reference pathways")
-    plt.savefig("../Figures/organism_vs_reference_pathways_pvals.png", dpi=300)
+    # plt.savefig("../Figures/organism_vs_reference_pathways_pvals.png", dpi=600)
     plt.show()
 
 organism_vs_reference()

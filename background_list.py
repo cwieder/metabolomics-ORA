@@ -106,7 +106,7 @@ def plot_log_pvalues(db="KEGG"):
         # jittered_x = x + 0.1 * np.random.rand(len(x)) - 0.05
         ax = sns.regplot(x=x, y=y,
                          ci=95,
-                         scatter_kws={'s': 3})
+                         scatter_kws={'s': 5})
     # set dotted lines for TOF-MS data
     ax.lines[3].set_linestyle("--")
     ax.lines[4].set_linestyle("--")
@@ -121,7 +121,7 @@ def plot_log_pvalues(db="KEGG"):
     ax.axhline(y=1, linewidth=1, color='black', linestyle='--')
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
     # plt.title("KEGG")
-    plt.savefig("../Figures/logp_plot_KEGG.png", dpi=600)
+    # plt.savefig("../Figures/logp_plot_KEGG.png", dpi=600)
     plt.show()
 
     # fig, ax = plt.subplots(3,2)
@@ -226,7 +226,7 @@ def plot_grouped_stacked_bar(db="KEGG"):
 
     # plt.title(db, fontsize=14)
     plt.tight_layout()
-    plt.savefig("../Figures/all_vs_experimental_barchart_KEGG.png", dpi=600)
+    # plt.savefig("../Figures/all_vs_experimental_barchart_KEGG.png", dpi=600)
     plt.show()
 
 
@@ -234,8 +234,8 @@ def plot_grouped_stacked_bar(db="KEGG"):
 
 # Reducing background set
 def reduce_background_set(db="KEGG"):
-    percentage_reductions_keep_DEM = [i for i in range(100, 45, -5)]
-    percentage_reductions = [i for i in range(100, 5, -5)]
+    percentage_reductions_keep_DEM = [i for i in range(100, 0, -10)]
+    percentage_reductions = [i for i in range(100, 0, -10)]
     d_sets = datasets
     if db == "Reactome":
         d_sets = datasets_reactome
@@ -247,6 +247,7 @@ def reduce_background_set(db="KEGG"):
             res = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=False)
             results_lists.append([d, i] + res)
         for i in percentage_reductions_keep_DEM:
+            print(i)
             res_keep_DEM = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=True)
             results_lists_keep_DEM.append([d, i] + res_keep_DEM)
 
@@ -266,10 +267,10 @@ def reduce_background_set(db="KEGG"):
     simulation_res_keep_DEM = res_df_keep_DEM
     with plt.style.context('seaborn'):
         fig = plt.figure(figsize=(10, 6), dpi=600)
-        gs = gridspec.GridSpec(1, 2, width_ratios=[3, 2])
+        gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1])
         ax1 = fig.add_subplot(gs[0])
-        ax2 = fig.add_subplot(gs[1], sharey=ax1)
-        ax1.set_title("Random background list reduction", fontsize=14)
+        ax2 = fig.add_subplot(gs[1])
+        ax1.set_title("Random compound removal", fontsize=14)
         for i in d_sets.keys():
             if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
                 ax1.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
@@ -282,7 +283,8 @@ def reduce_background_set(db="KEGG"):
                              yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
                              label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax1.set_xlim(100, 10)
-        ax2.set_title("No DA metabolite removal", fontsize=14)
+        ax1.set_xlabel("Percentage of compounds in experiment")
+        ax2.set_title("Random background list reduction", fontsize=14)
         for i in d_sets.keys():
             if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
                 ax2.errorbar(simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['Percentage reduction'],
@@ -296,7 +298,8 @@ def reduce_background_set(db="KEGG"):
                              yerr=simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i][
                                  'sd_proportion_p_vals'],
                              label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
-        ax2.set_xlim(100, 50)
+        ax2.set_xlim(100, 10)
+        ax2.set_xlabel("Percentage of compounds in background list")
         # fig.suptitle("Reactome", fontsize=14)
         handles, labels = ax1.get_legend_handles_labels()
         # plt.subplots_adjust(right=0.7)
@@ -305,12 +308,11 @@ def reduce_background_set(db="KEGG"):
         plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
         plt.grid(False)
 
-        plt.ylabel("Proportion of pathways significant at P < 0.1 \n compared to at baseline (original background set)",
+        plt.ylabel("Proportion of pathways significant at P ≤ 0.1 \n compared to at baseline (original background set)",
                    fontsize=13)
-        plt.xlabel("Percentage of original background list", fontsize=13)
         plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), fontsize=11)
         plt.tight_layout()
-        plt.savefig("background_list_reduction_proportion_KEGG.png", dpi=600)
+        plt.savefig("background_list_reduction_proportion_KEGG_new.png", dpi=600)
         plt.show()
 
 
