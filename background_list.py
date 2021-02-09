@@ -265,12 +265,12 @@ def reduce_background_set(db="KEGG"):
     # simulation_res_keep_DEM = pd.read_csv("Background_reduction_simulation_keep_DEM.csv")
     simulation_res = res_df
     simulation_res_keep_DEM = res_df_keep_DEM
-    with plt.style.context('seaborn'):
+    with plt.style.context('seaborn-darkgrid'):
         fig = plt.figure(figsize=(10, 6), dpi=600)
         gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1])
         ax1 = fig.add_subplot(gs[0])
         ax2 = fig.add_subplot(gs[1])
-        ax1.set_title("Random compound removal", fontsize=14)
+        ax1.set_title("Random background list reduction", fontsize=14)
         for i in d_sets.keys():
             if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
                 ax1.errorbar(simulation_res[simulation_res["Dataset"] == i]['Percentage reduction'],
@@ -283,8 +283,7 @@ def reduce_background_set(db="KEGG"):
                              yerr=simulation_res[simulation_res["Dataset"] == i]['sd_proportion_p_vals'],
                              label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax1.set_xlim(100, 10)
-        ax1.set_xlabel("Percentage of original compounds in experiment")
-        ax2.set_title("Random background list reduction", fontsize=14)
+        ax2.set_title("No DA metabolite removal", fontsize=14)
         for i in d_sets.keys():
             if i in ["Quirós", "Fuhrer (yfgM)", "Fuhrer (dcuS)"]:
                 ax2.errorbar(simulation_res_keep_DEM[simulation_res_keep_DEM["Dataset"] == i]['Percentage reduction'],
@@ -299,7 +298,6 @@ def reduce_background_set(db="KEGG"):
                                  'sd_proportion_p_vals'],
                              label=i, fmt='o', linestyle="solid", capsize=5, markeredgewidth=2, markersize=4)
         ax2.set_xlim(100, 10)
-        ax2.set_xlabel("Percentage of original compounds in background list")
         # fig.suptitle("Reactome", fontsize=14)
         handles, labels = ax1.get_legend_handles_labels()
         # plt.subplots_adjust(right=0.7)
@@ -308,8 +306,9 @@ def reduce_background_set(db="KEGG"):
         plt.tick_params(labelcolor='none', top=False, bottom=False, left=False, right=False)
         plt.grid(False)
 
-        plt.ylabel("Proportion of pathways significant at P ≤ 0.1 \n compared to at baseline (original background set)",
+        plt.ylabel("Proportion of pathways significant at P ≤ 0.1 \n compared to at baseline (original background list)",
                    fontsize=13)
+        plt.xlabel("Percentage of original compounds present in background list", fontsize=13)
         plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), fontsize=11)
         plt.tight_layout()
         plt.savefig("background_list_reduction_proportion_KEGG_new.png", dpi=600)

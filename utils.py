@@ -139,16 +139,16 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
             # k: compounds in DEM list AND pathway
             DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds))
             # K: compounds in DEM list not in pathway
-            compound_in_pathway_not_DEM = len(set(np.setdiff1d(background_list, DEM_list)) & set(pathway_compounds))
-            # compounds present in bg set and pathway
+            compound_in_pathway_not_DEM = len(set(pathway_compounds) & set(np.setdiff1d(background_list, DEM_list)))
+            # not DEM compounds present in pathway
             compound_not_in_pathway_not_DEM = len(np.setdiff1d(np.setdiff1d(background_list, DEM_list), pathway_compounds))
             # compounds in background list not present in pathway
-
             if DEM_in_pathway == 0:
                 # ignore pathway if there are no DEM compounds in that pathway
                 continue
             else:
                 # Create 2 by 2 contingency table
+
                 pathway_ratio.append(str(DEM_in_pathway) + "/" + str(compound_in_pathway_not_DEM + DEM_in_pathway))
                 pathways_with_compounds.append(pathway)
                 pathway_names_with_compounds.append(pathway_dict[pathway])
