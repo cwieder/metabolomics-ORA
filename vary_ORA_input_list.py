@@ -25,17 +25,17 @@ all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.
 
 # param grid
 datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown,
-                      [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-"Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada,
-            [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-"Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg,
-            mat_stevens, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx,
-           [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
-"Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM,
-                  [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
-"Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS,
-                  [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
+                      [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]]}
+# "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada,
+#             [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+# "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg,
+#             mat_stevens, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+# "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx,
+#            [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
+# "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM,
+#                   [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
+# "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS,
+#                   [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
 
 print("Data import complete")
 
@@ -199,16 +199,16 @@ def vary_dam_size():
                                                        fc='white',
                                                        linestyle="dotted"))
         plt.tight_layout()
-        plt.savefig("../Figures/vary_input_metabolites_all_new.png", dpi=600)
+        plt.savefig("vary_input_metabolites_all_new.png", dpi=600)
         plt.show()
 
 
 vary_dam_size()
 
-def vary_dam_size_single():
+def vary_dam_size_single(dataset):
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
-    for d in datasets.keys():
+    for d in [dataset]:
         print(d)
         for m in multiple_test_options:
             if d.startswith("Fuhrer"):
@@ -242,9 +242,9 @@ def vary_dam_size_single():
     res_df = pd.DataFrame(res_list, columns=["Dataset", "Cutoff_P", "Multiple_correction_method", "n_p_less_01"])
 
     # add annotations
-    cutoffs = [0.01, 0.05, 0.1]
+    cutoffs = [0.005, 0.05, 0.1]
     annotations = []
-    for d in datasets.keys():
+    for d in [dataset]:
         for c in cutoffs:
             for m in multiple_test_options:
                 if d.startswith("Fuhrer"):
@@ -310,4 +310,4 @@ def vary_dam_size_single():
         plt.show()
 
 
-# vary_dam_size_single()
+# vary_dam_size_single("Labbé")
