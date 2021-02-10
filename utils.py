@@ -106,6 +106,7 @@ def t_tests(matrix, classes, multiple_correction_method):
     padj = sm.stats.multipletests(pvalues, 0.05, method=multiple_correction_method)
     results = pd.DataFrame(zip(metabolites, pvalues, padj[1]),
                            columns=["Metabolite", "P-value", "P-adjust"])
+    # print(results["P-value"].tolist())
     return results
 
 

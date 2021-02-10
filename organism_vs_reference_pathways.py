@@ -39,6 +39,7 @@ def organism_vs_reference(db="KEGG"):
     # if db == "Cyc":
     #     d_sets = datasets_biocyc
     plt_dict = {}
+
     for i in d_sets.keys():
         ora_res_org = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], d_sets[i][2])
         ora_res_ref = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], KEGG_reference_pathways)
@@ -62,10 +63,11 @@ def organism_vs_reference(db="KEGG"):
         # jittered_x = x + 0.1 * np.random.rand(len(x)) - 0.05
         ax = sns.regplot(x=x, y=y,
                          ci=95,
-                         scatter_kws={'s': 3})
-    ax.lines[3].set_linestyle("--")
-    ax.lines[4].set_linestyle("--")
-    ax.lines[5].set_linestyle("--")
+                         fit_reg=False,
+                         scatter_kws={'s': 40, 'alpha': 0.5, 'linestyle': 'None'})
+    # ax.lines[3].set_linestyle("--")
+    # ax.lines[4].set_linestyle("--")
+    # ax.lines[5].set_linestyle("--")
     ax.set_xlabel("KEGG organism-specific pathway set (-log10 P-value)",
                   fontsize=13)
     ax.set_ylabel("KEGG reference pathway set (-log10 P-value)",
@@ -77,7 +79,7 @@ def organism_vs_reference(db="KEGG"):
     ax.axvline(x=1, linewidth=1, color='black', linestyle='--')
 
     # plt.title("KEGG: Organism-specific vs. reference pathways")
-    # plt.savefig("../Figures/organism_vs_reference_pathways_pvals.png", dpi=600)
+    plt.savefig("../Figures/organism_vs_reference_pathways_pvals_noline.png", dpi=600)
     plt.show()
 
 organism_vs_reference()
