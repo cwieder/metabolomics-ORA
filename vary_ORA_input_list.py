@@ -25,17 +25,17 @@ all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.
 
 # param grid
 datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown,
-                      [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]]}
-# "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada,
-#             [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-# "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg,
-#             mat_stevens, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
-# "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx,
-#            [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
-# "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM,
-#                   [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
-# "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS,
-#                   [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
+                      [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+"Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada,
+            [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+"Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg,
+            mat_stevens, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+"Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx,
+           [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
+"Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM,
+                  [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
+"Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS,
+                  [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
 
 print("Data import complete")
 
@@ -100,7 +100,7 @@ def vary_pval():
 # vary_pval()
 
 def vary_dam_size():
-    proportion_of_bg = [i for i in range(0, 105, 5)]
+    proportion_of_bg = [i for i in range(0, 101, 1)]
     multiple_test_options = ["bonferroni", "fdr_bh"]
     res_list = []
     for d in datasets.keys():
