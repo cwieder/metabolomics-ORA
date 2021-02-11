@@ -304,7 +304,6 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
     if not zamboni:
         mat_unannotated = processed_matrix.iloc[:, :-1]
         metabolites = list(set(mat_unannotated.columns.tolist()))
-        print(len(metabolites))
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
 
         mass_dict = dict(zip(KEGG_compounds_masses_organism.index.tolist(), KEGG_compounds_masses_organism['mass'].tolist()))
@@ -318,8 +317,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                                                                 inclusive=False)].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
-        print(len(misidentifiable_metabolites))
-        for i in range(0, 3):
+        for i in range(0, 100):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -337,7 +335,6 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             non_significant_paths.append(ora_res[ora_res["P-value"] > 0.1]["Pathway_ID"].tolist())
     elif zamboni:
         metabolites = list(set(processed_matrix.columns.tolist()))
-        print(len(metabolites))
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
 
         mass_dict = dict(zip(KEGG_compounds_masses_organism.index.tolist(), KEGG_compounds_masses_organism['mass'].tolist()))
@@ -351,8 +348,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
 
-        print(len(misidentifiable_metabolites))
-        for i in range(0, 3):
+        for i in range(0, 100):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
