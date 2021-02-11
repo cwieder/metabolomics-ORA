@@ -213,7 +213,7 @@ def TPR_heatmap(pg, fname, db="KEGG"):
 
 # TPR_heatmap(param_grid_heatmaps["random"], "random_misidentification_heatmap_KEGG_new.png", db="KEGG")
 # TPR_heatmap(param_grid_heatmaps["formula"], "formula_misidentification_heatmap_KEGG_new.png", db="KEGG")
-TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
+# TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_heatmap_KEGG_new.png", db="KEGG")
 
 def plot_ROC(pg, fname, db="KEGG"):
     """
@@ -419,3 +419,89 @@ def misidentification_formula_plot(db="KEGG"):
 
 
 # misidentification_formula_plot(db="KEGG")
+
+def misidentification_barplot(pg, fname, db="KEGG"):
+
+    """
+    Plots TRP/FPR heatmap
+    :param misidenetification_funct: function for misidentification
+    :param db: Database, default is KEGG
+    :return: heatmap
+    """
+    d_sets = datasets
+    if db == "Reactome":
+        d_sets = datasets_reactome
+    results_TPR = []
+    results_FPR = []
+    for d in d_sets.keys():
+        print(d)
+        if d.startswith("Fuhrer"):
+            original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
+                                      zamboni=True)[4][0]
+
+            for i in [5]:
+                print(i)
+                res = pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
+                            zamboni=True)[4]
+                misidentified_pathways = res
+                pathway_fractions_TPR = []
+                pathway_fractions_FPR = []
+                for x in misidentified_pathways:
+                    total_significant_paths = len(original_pathways)  # True positive + false positive
+                    number_common_paths = len([i for i in x if i in original_pathways])
+                    fraction_pathways_TPR = 1-(number_common_paths / total_significant_paths)
+                    pathway_fractions_TPR.append(fraction_pathways_TPR)
+                    fraction_pathways_FPR = len(
+                        [i for i in x if i not in original_pathways]) / total_significant_paths
+                    pathway_fractions_FPR.append(fraction_pathways_FPR)
+                avg_fraction_TPR = np.mean(pathway_fractions_TPR)
+                avg_fraction_FPR = np.mean(pathway_fractions_FPR)
+                results_TPR.append([d, i, avg_fraction_TPR])
+                results_FPR.append([d, i, avg_fraction_FPR])
+
+        else:
+            original_pathways = \
+                pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4][
+                    0]
+            for i in [5]:
+                print(i)
+                res = \
+                pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4]
+                misidentified_pathways = res
+                pathway_fractions_TPR = []
+                pathway_fractions_FPR = []
+                for x in misidentified_pathways:
+                    total_significant_paths = len(original_pathways)  # True positive + false positive
+                    number_common_paths = len([i for i in x if i in original_pathways])
+                    fraction_pathways_TPR = 1-(number_common_paths / total_significant_paths)
+                    pathway_fractions_TPR.append(fraction_pathways_TPR)
+                    fraction_pathways_FPR = len(
+                        [i for i in x if i not in original_pathways]) / total_significant_paths
+                    pathway_fractions_FPR.append(fraction_pathways_FPR)
+                avg_fraction_TPR = np.mean(pathway_fractions_TPR)
+                avg_fraction_FPR = np.mean(pathway_fractions_FPR)
+                results_TPR.append([d, i, avg_fraction_TPR])
+                results_FPR.append([d, i, avg_fraction_FPR])
+    res_df_TPR = pd.DataFrame(results_TPR,
+                              columns=["Dataset", "Percentage misidentification", "Average fraction"])
+    res_df_FPR = pd.DataFrame(results_FPR,
+                              columns=["Dataset", "Percentage misidentification", "Average fraction"])
+
+    res_df_TPR = res_df_TPR.pivot(index='Percentage misidentification', columns='Dataset',
+                                  values='Average fraction')
+    res_df_FPR = res_df_FPR.pivot(index='Percentage misidentification', columns='Dataset',
+                                  values='Average fraction')
+    print(res_df_FPR)
+    print(res_df_TPR)
+    res_df_TPR = res_df_TPR.reindex(columns=list(d_sets.keys()))
+    res_df_FPR = res_df_FPR.reindex(columns=list(d_sets.keys()))
+    # res_df = pd.read_csv("metabolite_misidentification_heatmap.csv", index_col=0)
+    # plt.style.use("seaborn-darkgrid")
+    #
+    # plt.tight_layout()
+    # plt.savefig(fname, dpi=600)
+    plt.show()
+
+misidentification_barplot("KEGG")
+
+TPR_heatmap(param_grid_heatmaps["mass"], "mass_misidentification_barplot.png", db="KEGG")
