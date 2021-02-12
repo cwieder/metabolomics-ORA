@@ -384,8 +384,6 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
     formulas = all_cpd_formulas.iloc[:, [0, 1]]
     KEGG_compounds_formula_organism = formulas[formulas.compound.isin(organism_bg)]
     KEGG_compounds_formula_organism = KEGG_compounds_formula_organism.set_index('compound')
-    print(len(organism_bg))
-    print(len(KEGG_compounds_formula_organism))
     p_vals = []
     q_vals = []
     significant_pathways = []  # at P < 0.1
@@ -406,7 +404,6 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
                 KEGG_compounds_formula_organism['formula'] == formula].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
-        print(len(misidentifiable_metabolites))
         for i in range(0, 100):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
@@ -425,7 +422,6 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
             non_significant_paths.append(ora_res[ora_res["P-value"] > 0.1]["Pathway_ID"].tolist())
     elif zamboni:
         metabolites = list(set(processed_matrix.columns.tolist()))
-        print(len(metabolites))
         n_misidentified = int(len(set(metabolites)) * (percentage / 100))
         misidentifiable_metabolites = dict()
         compound_formula_dict = dict(zip(KEGG_compounds_formula_organism.index.tolist(),
@@ -438,7 +434,6 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
                 KEGG_compounds_formula_organism['formula'] == formula].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
-        print(len(misidentifiable_metabolites))
         for i in range(0, 100):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:

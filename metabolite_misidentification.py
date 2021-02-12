@@ -439,7 +439,7 @@ def misidentification_barplot(pg, db="KEGG"):
             original_pathways = pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
                                       zamboni=True)[4][0]
 
-            for i in [5]:
+            for i in [4]:
                 print(i)
                 res = pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]],
                             zamboni=True)[4]
@@ -465,7 +465,7 @@ def misidentification_barplot(pg, db="KEGG"):
             original_pathways = \
                 pg[0](0, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4][
                     0]
-            for i in [5]:
+            for i in [4]:
                 print(i)
                 res = \
                 pg[0](i, d_sets[d][pg[1]], d_sets[d][pg[2]], d_sets[d][pg[3]], d_sets[d][pg[4]], zamboni=False)[4]
@@ -491,19 +491,35 @@ def misidentification_barplot(pg, db="KEGG"):
     res_df_FPR = pd.DataFrame(results_FPR,
                               columns=["Dataset", "Percentage misidentification", "Average fraction", "SEM"])
 
-    plt.style.use("seaborn-darkgrid")
-    plt.figure(figsize=(8,8))
-    plt.bar(res_df_FPR["Dataset"].tolist(), res_df_FPR["Average fraction"],
-            yerr = res_df_FPR["SEM"], capsize=5, label="Pathway gain rate", color="cornflowerblue")
-    plt.bar(res_df_TPR["Dataset"].tolist(), -res_df_TPR["Average fraction"],
-            yerr = res_df_TPR["SEM"], capsize=5, label="Pathway loss rate", color="tomato")
-    plt.ylabel("Pathway gain (upper bars) and pathway loss (lower bars) rate", fontsize=13)
-    plt.xlabel("Dataset", fontsize=13)
-    plt.legend(fontsize=11)
-    plt.xticks(rotation = 45)
-    plt.tight_layout()
-    plt.savefig("pathway_gain_loss_mass.png", dpi=600)
-    plt.show()
+    return res_df_TPR, res_df_FPR
 
 
-misidentification_barplot(param_grid_heatmaps["mass"], db="KEGG")
+mass_TPR, mass_FPR = misidentification_barplot(param_grid_heatmaps["mass"], db="KEGG")
+formula_TPR, formula_FPR = misidentification_barplot(param_grid_heatmaps["formula"], db="KEGG")
+
+plt.style.use("seaborn-darkgrid")
+plt.rc('xtick',labelsize=11)
+
+fig, (ax1, ax2) = plt.subplots(2, figsize=(8, 9), sharex=True, sharey=True)
+
+ax1.bar(mass_FPR["Dataset"].tolist(), mass_FPR["Average fraction"],
+        yerr=mass_FPR["SEM"], capsize=5, label="Pathway gain rate", color="cornflowerblue")
+ax1.bar(mass_TPR["Dataset"].tolist(), -mass_TPR["Average fraction"],
+        yerr=mass_TPR["SEM"], capsize=5, label="Pathway loss rate", color="tomato")
+ax1.set_title("Misidentification by mass", fontsize=13)
+
+ax2.bar(formula_FPR["Dataset"].tolist(), formula_FPR["Average fraction"],
+        yerr=formula_FPR["SEM"], capsize=5, label="Pathway gain rate", color="cornflowerblue")
+ax2.bar(formula_TPR["Dataset"].tolist(), -formula_TPR["Average fraction"],
+        yerr=formula_TPR["SEM"], capsize=5, label="Pathway loss rate", color="tomato")
+ax2.set_title("Misidentification by chemical formula", fontsize=13)
+
+ax2.set_xlabel("Dataset", fontsize=13)
+fig.text(0.0, 0.25, "Pathway gain (upper bars) and pathway loss (lower bars) rate", fontsize=13, ha='center', rotation="vertical")
+ax1.legend(fontsize=11)
+ax2.tick_params(labelrotation=45)
+
+plt.tight_layout()
+plt.savefig("pathway_gain_loss_mass_formula_4_pct.png", dpi=600)
+plt.show()
+
