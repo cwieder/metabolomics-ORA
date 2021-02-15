@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import time
+import scipy.stats as stats
 
 # Import the relevant datasets
 # DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="Reactome")
@@ -481,9 +481,9 @@ def misidentification_barplot(pg, db="KEGG"):
                         [i for i in x if i not in original_pathways]) / total_significant_paths
                     pathway_fractions_FPR.append(fraction_pathways_FPR)
                 avg_fraction_TPR = np.mean(pathway_fractions_TPR)
-                sem_TPR = np.std(pathway_fractions_TPR)
+                sem_TPR = stats.sem(pathway_fractions_TPR)
                 avg_fraction_FPR = np.mean(pathway_fractions_FPR)
-                sem_FPR = np.std(pathway_fractions_FPR)
+                sem_FPR = stats.sem(pathway_fractions_FPR)
                 results_TPR.append([d, i, avg_fraction_TPR, sem_TPR])
                 results_FPR.append([d, i, avg_fraction_FPR, sem_FPR])
     res_df_TPR = pd.DataFrame(results_TPR,
@@ -515,11 +515,11 @@ ax2.bar(formula_TPR["Dataset"].tolist(), -formula_TPR["Average fraction"],
 ax2.set_title("Misidentification by chemical formula", fontsize=13)
 
 ax2.set_xlabel("Dataset", fontsize=13)
-fig.text(0.0, 0.25, "Pathway gain (upper bars) and pathway loss (lower bars) rate", fontsize=13, ha='center', rotation="vertical")
+fig.text(0.06, 0.25, "Pathway gain (upper bars) and pathway loss (lower bars) rate", fontsize=13, ha='center', rotation="vertical")
 ax1.legend(fontsize=11)
-ax2.tick_params(labelrotation=45)
-
-plt.tight_layout()
+for tick in ax2.get_xticklabels():
+    tick.set_rotation(45)
 plt.savefig("pathway_gain_loss_mass_formula_4_pct.png", dpi=600)
 plt.show()
+
 
