@@ -266,6 +266,7 @@ def reduce_background_set(db="KEGG"):
     simulation_res = res_df
     simulation_res_keep_DEM = res_df_keep_DEM
     with plt.style.context('seaborn-darkgrid'):
+        sns.set_palette("deep")
         fig = plt.figure(figsize=(10, 6), dpi=600)
         gs = gridspec.GridSpec(1, 2, width_ratios=[1, 1])
         ax1 = fig.add_subplot(gs[0])
