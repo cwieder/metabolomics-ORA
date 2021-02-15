@@ -88,7 +88,6 @@ def linear_regression(matrix, metadatadict):
     return results
 
 def t_tests(matrix, classes, multiple_correction_method):
-
     matrix['Target'] = pd.factorize(classes)[0]
     metabolites = matrix.columns.tolist()[:-1]
 
@@ -169,7 +168,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
     return results
 
 
-def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_df, keep_DEM=False):
+def reduce_background_list_ora(background_list, matrix, percentage, DEM_list, pathways_df, keep_DEM=False, Zamboni=False):
     """
     Reduces size of background list by random removal of compounds
     :param background_list: background list of compound names/IDs
@@ -196,11 +195,25 @@ def reduce_background_list_ora(background_list, percentage, DEM_list, pathways_d
     # q_vals.append(len(baseline_res[baseline_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
 
     for i in range(0, 100):
+        DEM_cpds = DEM_list
         if not keep_DEM:
-            bg_list_reduced = np.random.choice(background_list, list_size, replace=False)
+            if Zamboni == True:
+                bg_list_reduced = np.random.choice(background_list, list_size, replace=False).tolist()
+                mat_filt = matrix[(bg_list_reduced)]
+                DEM = []
+                for x in mat_filt.T.itertuples():
+                    if x[1] > 6 or x[1] < -6:
+                        DEM.append(x[0])
+                DEM_cpds = DEM
+            else:
+                bg_list_reduced = np.random.choice(background_list, list_size, replace=False).tolist()
+                mat_filt = matrix[(bg_list_reduced)]
+                ttest_res = t_tests(mat_filt, matrix["Group"], "fdr_bh")
+                DEM_cpds = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
+
         else:
             bg_list_reduced = np.random.choice(np.setdiff1d(bg_list_without_dem, DEM_list), list_size, replace=False)
-        ora_res = over_representation_analysis(DEM_list, bg_list_reduced, pathways_df)
+        ora_res = over_representation_analysis(DEM_cpds, bg_list_reduced, pathways_df)
         p_vals.append(len(ora_res[ora_res["P-value"] <= 0.1]["P-value"].tolist()))
 #         print(len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist()), baseline_significant_paths[0])
         proportion_of_original_pathways_signficant_p.append(len(ora_res[ora_res["P-value"] <= 0.1]["P-value"].tolist())/baseline_significant_paths[0])

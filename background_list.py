@@ -55,12 +55,12 @@ BioCyc_eco_pathways = pd.read_csv("Metacyc_EColi_pathways.csv")
 all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
-datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg],
-            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg],
-            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg],
-            "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg],
-            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg],
-            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg]}
+datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown],
+            "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada],
+            "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg, mat_stevens],
+            "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx],
+            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM],
+            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS]}
 
 # datasets_reactome = {"Quirós": [DEM_auwerx, background_auwerx, Reactome_human_pathways, all_reactome_human_bg],
 #                      "Yachida": [DEM_yamada, background_yamada, Reactome_human_pathways, all_reactome_human_bg],
@@ -243,13 +243,24 @@ def reduce_background_set(db="KEGG"):
     results_lists = []
     for d in d_sets.keys():
         print(d)
-        for i in percentage_reductions:
-            res = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=False)
-            results_lists.append([d, i] + res)
-        for i in percentage_reductions_keep_DEM:
-            print(i)
-            res_keep_DEM = utils.reduce_background_list_ora(d_sets[d][1], i, d_sets[d][0], d_sets[d][2], keep_DEM=True)
-            results_lists_keep_DEM.append([d, i] + res_keep_DEM)
+        if d.startswith("Fuhrer"):
+            for i in percentage_reductions:
+                res = utils.reduce_background_list_ora(d_sets[d][1], d_sets[d][4], i, d_sets[d][0], d_sets[d][2], keep_DEM=False, Zamboni=True)
+                results_lists.append([d, i] + res)
+            for i in percentage_reductions_keep_DEM:
+                print(i)
+                res_keep_DEM = utils.reduce_background_list_ora(d_sets[d][1], d_sets[d][4], i, d_sets[d][0], d_sets[d][2], keep_DEM=True, Zamboni=True)
+                results_lists_keep_DEM.append([d, i] + res_keep_DEM)
+        else:
+            for i in percentage_reductions:
+                res = utils.reduce_background_list_ora(d_sets[d][1], d_sets[d][4], i, d_sets[d][0], d_sets[d][2], keep_DEM=False, Zamboni=False)
+                results_lists.append([d, i] + res)
+            for i in percentage_reductions_keep_DEM:
+                print(i)
+                res_keep_DEM = utils.reduce_background_list_ora(d_sets[d][1], d_sets[d][4], i, d_sets[d][0], d_sets[d][2], keep_DEM=True, Zamboni=False)
+                results_lists_keep_DEM.append([d, i] + res_keep_DEM)
+
+
 
     res_df = pd.DataFrame(results_lists,
                           columns=["Dataset", "Percentage reduction", "n_p_less_0.1",
@@ -312,7 +323,7 @@ def reduce_background_set(db="KEGG"):
         plt.xlabel("Percentage of original compounds present in background list", fontsize=13)
         plt.legend(handles, labels, loc='center left', bbox_to_anchor=(1, 0.5), fontsize=11)
         plt.tight_layout()
-        plt.savefig("background_list_reduction_proportion_KEGG_new.png", dpi=600)
+        plt.savefig("background_list_reduction_proportion_KEGG_new2.png", dpi=600)
         plt.show()
 
 

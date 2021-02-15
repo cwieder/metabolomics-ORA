@@ -149,9 +149,9 @@ def stevens_data(db="KEGG"):
 
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-    background_list = stevens_matrix_proc.columns.tolist()
+    background = stevens_matrix_proc.iloc[:, :-1].columns.tolist()
 
-    return DEM, background_list, stevens_matrix_proc
+    return DEM, background, stevens_matrix_proc
 
 
 def zamboni_data(knockout, db="KEGG"):
@@ -317,6 +317,6 @@ def auwerx_data(db="KEGG"):
 
     ttest_res = utils.t_tests(matrix_proc_copy.iloc[:, :-1], matrix_proc_copy["Group"], "fdr_bh")
     DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
-    background_list = matrix_proc_copy.columns.tolist()
+    background = matrix_proc_copy.iloc[:, :-1].columns.tolist()
 
-    return DA_metabolites, background_list, matrix_proc_copy
+    return DA_metabolites, background, matrix_proc_copy
