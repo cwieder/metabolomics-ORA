@@ -43,6 +43,7 @@ def organism_vs_reference(db="KEGG"):
     for i in d_sets.keys():
         ora_res_org = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], d_sets[i][2])
         ora_res_ref = utils.over_representation_analysis(d_sets[i][0], d_sets[i][1], KEGG_reference_pathways)
+        quit()
         intersect = (set(ora_res_org["Pathway_ID"].str.slice(start=-5).tolist()) & set(ora_res_ref["Pathway_ID"].str.slice(start=-5).tolist()))
         common = set(set(ora_res_org[ora_res_org["P-value"] <= 0.1]["Pathway_ID"].str.slice(start=-5).tolist()) & set(ora_res_ref[ora_res_ref["P-value"] <= 0.1]["Pathway_ID"].str.slice(start=-5).tolist()))
         org_only = np.setdiff1d(ora_res_org[ora_res_org["P-value"] <= 0.1]["Pathway_ID"].str.slice(start=-5).tolist(),
@@ -60,7 +61,6 @@ def organism_vs_reference(db="KEGG"):
     results_table = pd.DataFrame(res_lists, columns=["Dataset", "Common pathways", "Organism-specific only", "Reference only"])
     print(results_table)
     results_table.to_csv("Org_vs_ref_table.csv", index=False)
-    quit()
     for k, v in plt_dict.items():
         print(len(v[0]), len(v[1]))
 

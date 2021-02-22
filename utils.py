@@ -127,6 +127,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
     pathway_names_with_compounds = []
     pvalues = []
     pathway_ratio = []
+    pathway_count = 0
     for pathway in pathways:
         # perform ORA for each pathway
         pathway_compounds = KEGG_pathways.loc[pathway, :].tolist()
@@ -135,6 +136,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
             # ignore pathway if contains no compounds or has less than 3 compounds
             continue
         else:
+            pathway_count += 1
             DEM_in_pathway = len(set(DEM_list) & set(pathway_compounds))
             # k: compounds in DEM list AND pathway
             DEM_not_in_pathway = len(np.setdiff1d(DEM_list, pathway_compounds))
