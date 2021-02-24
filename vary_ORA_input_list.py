@@ -9,12 +9,12 @@ import statsmodels.api as sm
 import matplotlib
 
 # Import the relevant datasets
-# DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
+DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
 DEM_yamada, background_yamada, mat_yamada = process_datasets.yamada_data(db="KEGG")
 DEM_stevens, background_stevens, mat_stevens = process_datasets.stevens_data(db="KEGG")
 DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
-# DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
-# DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
+DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
+DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import pathway sets
 KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
@@ -30,13 +30,13 @@ datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEG
             "Yachida": [DEM_yamada, background_yamada, KEGG_human_pathways, all_KEGG_human_bg, mat_yamada,
                         [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
             "Stevens": [DEM_stevens, background_stevens, KEGG_human_pathways, all_KEGG_human_bg,
-                        mat_stevens, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]]}
-            # "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx,
-            #            [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
-            # "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM,
-            #                   [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
-            # "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS,
-            #                   [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
+                        mat_stevens, [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],
+            "Quirós": [DEM_auwerx, background_auwerx, KEGG_human_pathways, all_KEGG_human_bg, mat_auwerx,
+                       [i for i in range(0, 14, 1)], [i for i in range(0, 12, 1)]],
+            "Fuhrer (yfgM)": [DEM_yfgM, background_yfgM, KEGG_eco_pathways, all_KEGG_eco_bg, mat_yfgM,
+                              [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]],
+            "Fuhrer (dcuS)": [DEM_dcuS, background_dcuS, KEGG_eco_pathways, all_KEGG_eco_bg, mat_dcuS,
+                              [i for i in range(0, 7, 1)], [i for i in range(0, 6, 1)]]}
 
 print("Data import complete")
 
