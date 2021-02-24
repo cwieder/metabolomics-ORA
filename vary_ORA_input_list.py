@@ -6,6 +6,7 @@ import numpy as np
 import seaborn as sns
 import scipy.stats as stats
 import statsmodels.api as sm
+import matplotlib
 
 # Import the relevant datasets
 # DEM_auwerx, background_auwerx, mat_auwerx = process_datasets.auwerx_data(db="KEGG")
@@ -551,6 +552,7 @@ def vary_dam_size_single_rankbyp(dataset):
 
 vary_dam_size_single_rankbyp("Yachida")
 
+
 def vary_dam_size_rankbyP():
     proportion_of_bg = [i for i in range(1, 101, 1)]
     multiple_test_options = ["bonferroni", "fdr_bh"]
@@ -570,7 +572,6 @@ def vary_dam_size_rankbyP():
                 pvals_df["P-adjust"] = padj
                 pvals_df["ranked_p"] = stats.rankdata(pvals_df["P-value"], method='min')
                 pvals_df = pvals_df.sort_values(by="ranked_p")
-                # pvals_df.to_csv("fuhrer_pval_ranks_" + m + ".csv")
                 select_up_to = int((len(pvals_df["P-value"]) - 1) * (p / 100))
                 selected_rank = pvals_df.iloc[select_up_to, 2]
                 DA_metabolites = pvals_df[pvals_df["ranked_p"] <= selected_rank].index.tolist()
@@ -582,15 +583,13 @@ def vary_dam_size_rankbyP():
                 t_test_res = t_test_res.sort_values(by="ranked_p")
                 select_up_to = int((len(t_test_res["Metabolite"]) - 1) * (p / 100))
                 selected_rank = t_test_res.iloc[select_up_to, 3]
-                print(selected_rank, p)
                 DA_metabolites = t_test_res[t_test_res["ranked_p"] <= selected_rank]["Metabolite"].tolist()
-                print(len(DA_metabolites))
                 ora_res = utils.over_representation_analysis(DA_metabolites, datasets[d][1], datasets[d][2])
                 res_list.append([d, p, len(ora_res[ora_res["P-value"] < 0.1]["P-value"].tolist())])
     res_df = pd.DataFrame(res_list, columns=["Dataset", "Cutoff_P", "n_p_less_01"])
 
     # add annotations
-    cutoffs = [0.05, 0.1]
+    cutoffs = [0.005, 0.05, 0.1]
     annotations = []
     for d in datasets.keys():
         for c in cutoffs:
@@ -626,11 +625,9 @@ def vary_dam_size_rankbyP():
     cutoffs_df = pd.DataFrame(annotations)
     cutoffs_bonferroni = cutoffs_df[cutoffs_df[4] == "bonferroni"]
     cutoffs_FDR_BH = cutoffs_df[cutoffs_df[4] == "fdr_bh"]
-    print(cutoffs_bonferroni)
 
     res_df = res_df.sort_values(by='Cutoff_P')
 
-    print(res_df)
     with plt.style.context('seaborn-darkgrid'):
         fig, ax1 = plt.subplots(1, 1, figsize=(8, 8), dpi=600)
         cols = sns.color_palette("muted", 8)
@@ -644,26 +641,52 @@ def vary_dam_size_rankbyP():
                          res_df[res_df["Dataset"] == i]['n_p_less_01'].tolist(), 'o',
                          label=i, linestyle='-', color=cols[num], markersize=2)
 
-            dataset_annotation_bonferroni = cutoffs_bonferroni[cutoffs_bonferroni[3] == i]
-            for x in dataset_annotation_bonferroni.itertuples():
-                plt.text(x[2], x[3], x[1],
-                         bbox=dict(boxstyle="round",
-                                   ec=cols[num],
-                                   fc='white',
-                                   linestyle="dotted"))
-            dataset_annotation_bh = cutoffs_FDR_BH[cutoffs_FDR_BH[3] == i]
-            for x in dataset_annotation_bh.itertuples():
-                plt.text(x[2], x[3], x[1],
-                         bbox=dict(boxstyle="round",
-                                   ec=cols[num],
-                                   fc='white'))
+        for num, i in enumerate(cutoffs_bonferroni.itertuples()):
+            if i[1] == 0.005:
+                ax1.annotate('*', xy=(i[2], i[3]), fontsize=14)
+            elif i[1] == 0.05:
+                ax1.annotate('**', xy=(i[2], i[3]), fontsize=14)
+            elif i[1] == 0.1:
+                ax1.annotate('***', xy=(i[2], i[3]), fontsize=14)
+        for num, i in enumerate(cutoffs_FDR_BH.itertuples()):
+            if i[1] == 0.005:
+                ax1.annotate('*', xy=(i[2] + 0.5, i[3] + 0.001), fontsize=14, color="red")
+            elif i[1] == 0.05:
+                ax1.annotate('**', xy=(i[2], i[3]), fontsize=14, color="red")
+            elif i[1] == 0.1:
+                ax1.annotate('***', xy=(i[2], i[3]), fontsize=14, color="red")
 
-        ax1.legend(fontsize=11)
+        def create_proxy(label):
+            line = matplotlib.lines.Line2D([0], [0], linestyle='none', mfc='black',
+                                           mec='none', marker=r'$\mathregular{{{}}}$'.format(label), markersize=12)
+            return line
+
+        handles, labels = ax1.get_legend_handles_labels()
+        print(handles, labels)
+
+        patch = matplotlib.lines.Line2D([], [], color='black', linestyle='None',
+                                        markersize=8, label='P ≤ 0.005', marker=r'$\mathregular{{{}}}$'.format("*"))
+        patch2 = matplotlib.lines.Line2D([], [], color='black', linestyle='None',
+                                         markersize=10, label='P ≤ 0.05', marker=r'$\mathregular{{{}}}$'.format("**"))
+        patch3 = matplotlib.lines.Line2D([], [], color='black', linestyle='None',
+                                         markersize=13, label='P ≤ 0.1', marker=r'$\mathregular{{{}}}$'.format("***"))
+        patch4 = matplotlib.lines.Line2D([], [], color='red', linestyle='None',
+                                         markersize=8, label='Q ≤ 0.005', marker=r'$\mathregular{{{}}}$'.format("*"))
+        patch5 = matplotlib.lines.Line2D([], [], color='red', linestyle='None',
+                                         markersize=10, label='Q ≤ 0.05', marker=r'$\mathregular{{{}}}$'.format("**"))
+        patch6 = matplotlib.lines.Line2D([], [], color='red', linestyle='None',
+                                         markersize=13, label='Q ≤ 0.1', marker=r'$\mathregular{{{}}}$'.format("***"))
+
+        for p in [patch, patch2, patch3, patch4, patch5, patch6]:
+            handles.append(p)
+        ax1.legend(handles=handles, fontsize=11)
+
+        #         ax1.legend(fontsize=11)
         ax1.set_ylabel("Number of pathways significant at P ≤ 0.1", fontsize=13)
         ax1.set_xlabel("Top N% of metabolites (ranked by raw P-value)", fontsize=13)
         plt.tight_layout()
-        plt.savefig("vary_input_metabolites_all_new.png", dpi=600)
+        plt.savefig("vary_input_metabolites_all_new2.png", dpi=600)
         plt.show()
 
 
-# vary_dam_size_rankbyP()
+vary_dam_size_rankbyP()

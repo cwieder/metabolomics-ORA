@@ -146,7 +146,7 @@ def plot_log_pvalues(db="KEGG"):
     # plt.show()
 
 
-# plot_log_pvalues(db="KEGG")
+plot_log_pvalues(db="KEGG")
 
 
 def plot_grouped_stacked_bar(db="KEGG"):
@@ -327,6 +327,6 @@ def reduce_background_set(db="KEGG"):
         plt.show()
 
 
-reduce_background_set(db="KEGG")
+# reduce_background_set(db="KEGG")
 
 # Mind the gap set
