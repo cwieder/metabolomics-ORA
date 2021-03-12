@@ -24,6 +24,9 @@ all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
+print(len(all_KEGG_human_bg))
+quit()
+
 # param grid
 datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown,
                       [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)]],

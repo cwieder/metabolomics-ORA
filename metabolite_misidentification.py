@@ -498,7 +498,7 @@ mass_TPR, mass_FPR = misidentification_barplot(param_grid_heatmaps["mass"], db="
 formula_TPR, formula_FPR = misidentification_barplot(param_grid_heatmaps["formula"], db="KEGG")
 
 plt.style.use("seaborn-darkgrid")
-plt.rc('xtick',labelsize=11)
+plt.rc('xtick', labelsize=11)
 
 fig, (ax1, ax2) = plt.subplots(2, figsize=(8, 9), sharex=True, sharey=True)
 
@@ -515,11 +515,20 @@ ax2.bar(formula_TPR["Dataset"].tolist(), -formula_TPR["Average fraction"],
 ax2.set_title("Misidentification by chemical formula", fontsize=13)
 
 ax2.set_xlabel("Dataset", fontsize=13)
-fig.text(0.06, 0.25, "Pathway gain (upper bars) and pathway loss (lower bars) rate", fontsize=13, ha='center', rotation="vertical")
+fig.text(0.06, 0.25, "Pathway gain (upper bars) and pathway loss (lower bars) rate", fontsize=13, ha='center',
+         rotation="vertical")
 ax1.legend(fontsize=11)
 for tick in ax2.get_xticklabels():
     tick.set_rotation(45)
-plt.savefig("pathway_gain_loss_mass_formula_4_pct.png", dpi=600)
+
+ticks = ax1.get_yticks()
+ticks2 = ax2.get_yticks()
+
+# set labels to absolute values and with integer representation
+ax1.set_yticklabels([round((abs(x)), 1) for x in ax1.get_yticks()])
+
+plt.savefig("pathway_gain_loss_mass_formula_4_pct_2.png", dpi=600)
 plt.show()
+
 
 

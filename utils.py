@@ -24,6 +24,7 @@ def data_processing(raw_matrix, firstrow, firstcol):
     processed_matrix = processed_matrix.apply(pd.to_numeric)
     processed_matrix.replace(0, np.nan, inplace=True)
     processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.9]
+
     # Remove metabolites not present in > 10% of samples
     # Missing value imputation using minimum value/2
     imputed_matrix = processed_matrix.replace(np.nan, processed_matrix.min(axis=0)/2)

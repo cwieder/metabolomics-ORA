@@ -105,6 +105,7 @@ def brown_data(db="KEGG"):
     return DEM, background, mat_proc
 
 
+
 def stevens_data(db="KEGG"):
     md_raw = pd.read_csv("example_data/Stevens_metadata.txt", sep="\t")
     metadata_list = list(zip(md_raw['Factor Value[CurrentPMH]'], md_raw['Factor Value[Gender]'],
@@ -152,7 +153,6 @@ def stevens_data(db="KEGG"):
     background = stevens_matrix_proc.iloc[:, :-1].columns.tolist()
 
     return DEM, background, stevens_matrix_proc
-
 
 def zamboni_data(knockout, db="KEGG"):
     # import modified z-scores
@@ -320,3 +320,4 @@ def auwerx_data(db="KEGG"):
     background = matrix_proc_copy.iloc[:, :-1].columns.tolist()
 
     return DA_metabolites, background, matrix_proc_copy
+
