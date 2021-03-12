@@ -527,7 +527,7 @@ ticks2 = ax2.get_yticks()
 # set labels to absolute values and with integer representation
 ax1.set_yticklabels([round((abs(x)), 1) for x in ax1.get_yticks()])
 
-plt.savefig("pathway_gain_loss_mass_formula_4_pct_2.png", dpi=600)
+plt.savefig("pathway_gain_loss_mass_formula_4_pct_2.png", dpi=600, bbox_inches = "tight")
 plt.show()
 
 
