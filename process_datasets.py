@@ -151,8 +151,8 @@ def stevens_data(db="KEGG"):
     ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background = stevens_matrix_proc.iloc[:, :-1].columns.tolist()
-
     return DEM, background, stevens_matrix_proc
+
 
 def zamboni_data(knockout, db="KEGG"):
     # import modified z-scores

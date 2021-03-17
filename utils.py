@@ -171,7 +171,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
     return results
 
 
-def reduce_background_list_ora(background_list, matrix, percentage, DEM_list, pathways_df, keep_DEM=False, Zamboni=False):
+def reduce_background_list_ora(background_list, matrix, percentage, DEM_list, pathways_df, nsim, keep_DEM=False, Zamboni=False):
     """
     Reduces size of background list by random removal of compounds
     :param background_list: background list of compound names/IDs
@@ -197,7 +197,7 @@ def reduce_background_list_ora(background_list, matrix, percentage, DEM_list, pa
     baseline_significant_paths.append(len(baseline_res[baseline_res["P-value"] <= 0.1]["P-value"].tolist()))
     # q_vals.append(len(baseline_res[baseline_res["P-adjust"] < 0.1]["P-adjust"].tolist()))
 
-    for i in range(0, 100):
+    for i in range(0, nsim):
         DEM_cpds = DEM_list
         if not keep_DEM:
             if Zamboni == True:
@@ -295,7 +295,7 @@ def misidentify_metabolites(percentage, processed_matrix, organism_compounds, ba
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths,
             significant_pathways, non_significant_paths]
 
-def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, all_compound_masses, organism_bg, zamboni=False):
+def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, all_compound_masses, organism_bg, nsim, zamboni=False):
     '''
     Randomly swaps a percentage of KEGG compounds and then performs ORA
     :param percentage: percentage of compounds to be misidentified
@@ -333,7 +333,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
                                                                 inclusive=False)].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
-        for i in range(0, 100):
+        for i in range(0, nsim):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -364,7 +364,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
 
-        for i in range(0, 100):
+        for i in range(0, nsim):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -388,7 +388,7 @@ def misidentify_metabolites_by_mass(percentage, processed_matrix, pathway_df, al
     return [mean_p_signficant_paths, mean_q_signficant_paths, sd_p_signficant_paths, sd_q_signficant_paths,
             significant_pathways, non_significant_paths]
 
-def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df, all_cpd_formulas, organism_bg,
+def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df, all_cpd_formulas, organism_bg, nsim,
                                        zamboni=False):
     '''
     Randomly swaps a percentage of KEGG compounds and then performs ORA
@@ -420,7 +420,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
                 KEGG_compounds_formula_organism['formula'] == formula].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
-        for i in range(0, 100):
+        for i in range(0, nsim):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
@@ -450,7 +450,7 @@ def misidentify_metabolites_by_formula(percentage, processed_matrix, pathway_df,
                 KEGG_compounds_formula_organism['formula'] == formula].index.tolist()
             if len(cpd_info) > 1:
                 misidentifiable_metabolites[cpd] = np.setdiff1d(cpd_info, cpd).tolist()
-        for i in range(0, 100):
+        for i in range(0, nsim):
             replacement_dict = dict()
             while len(replacement_dict) < n_misidentified:
                 cpd_to_relpace = np.random.choice(list(misidentifiable_metabolites.keys()), 1)[0]
