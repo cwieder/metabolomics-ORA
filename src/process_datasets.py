@@ -12,7 +12,7 @@ with open('../data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
 def yamada_data(db="KEGG"):
-    data = pd.read_excel("example_data/Yachida_abundance.xlsx", index_col=0, header=0).T
+    data = pd.read_excel("../example_data/Yachida_abundance.xlsx", index_col=0, header=0).T
     data = data.rename(columns={'Group': 'disease'})
     sample_disease_dict = dict(zip(data.index, data['disease']))
     data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
@@ -66,7 +66,7 @@ def yamada_data(db="KEGG"):
 
 
 def brown_data(db="KEGG"):
-    mat = pd.read_excel("example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)").T
+    mat = pd.read_excel("../example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)").T
     mapping = dict(zip(mat.columns.tolist(), mat.loc["KEGG", :].tolist()))
     mat = mat.rename(columns=mapping)
     mat = mat.loc[:, mat.columns.notnull()]
@@ -119,7 +119,7 @@ def stevens_data(db="KEGG"):
     estrogen_progesterone = [k for k, v in metadata_dict.items() if v[0] not in ['Nonuser', 'E-only', np.nan]]
 
     # Get abundance matrix, transpose to n-samples by m-metabolites
-    mat = pd.read_csv("../Stevens_matrix_named_compounds_only.csv", index_col=0)
+    mat = pd.read_csv("../example_data/Stevens_matrix_named_compounds_only.csv", index_col=0)
     mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
     stevens_matrix_proc = utils.data_processing(mat_nonusers_estrogen.T, 8, 0)
     stevens_matrix_proc["Group"] = stevens_matrix_proc.index.map(sample_status_dict)
@@ -285,7 +285,7 @@ def zamboni_data(knockout, db="KEGG"):
     return DEM, background_list_all_annotations, mat
 
 def auwerx_data(db="KEGG"):
-    mat = pd.read_excel("example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
+    mat = pd.read_excel("../example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
     mat = mat.iloc[6:, :]
     mat = mat.loc[:, ~mat.columns.duplicated(keep='first')]
     mat = mat.loc[:, mat.columns.notnull()]
