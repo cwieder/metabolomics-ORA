@@ -11,7 +11,25 @@ Florence Vinson <sup>3</sup>, Juliette Cooke <sup>3</sup>, Rachel Lai <sup>2</su
 
 
 This repository contains the code to run the simulations presented in the study. The Python code to generate the results 
-is contained within the Jupyter notebook **src/reproducible_simulations.ipynb**. To get started, clone this repository, 
-download the dependencies listed in src/requirements.txt and run the reproducible_simulations.ipynb notebook. 
+is contained within the Jupyter notebook **src/reproducible_simulations.ipynb**.
 
+##Getting started
+Clone the repository
+```angular2html
+git clone https://github.com/cwieder/metabolomics-ORA.git
+```
 
+Install the required packages
+```
+cd metabolomics-ORA/src
+pip3 install requirements.txt
+```
+##Usage
+Launch the reproducible_simulations.ipynb Jupyter notebook and run the code cells
+```angular2html
+cd metabolomics-ORA/src
+jupyter-notebook reproducible_simulations.ipynb
+```
+
+##Contact
+[cw2019@ic.ac.uk](mailto:cw2019@ic.ac.uk)
