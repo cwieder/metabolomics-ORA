@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np
-import utils
+from src import utils
 import re
 from bioservices import *
 import pickle
-import scipy.stats as stats
 
 kegg_db = KEGG(verbose=False)
 
-with open('data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
+with open('../data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
     metacyc_mapping = pickle.load(handle)
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
@@ -54,7 +53,7 @@ def yamada_data(db="KEGG"):
         data_proc = data_proc.rename(columns=KEGG2Reactome)
 
     if db == "Cyc":
-        mapping = pd.read_csv("yamada2metacyc.txt", sep="\t")
+        mapping = pd.read_csv("../yamada2metacyc.txt", sep="\t")
         KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
         data_proc = data_proc.rename(columns=KEGG2BioCyc)
         data_proc = data_proc[data_proc.columns.dropna()]
@@ -72,7 +71,7 @@ def brown_data(db="KEGG"):
     mat = mat.rename(columns=mapping)
     mat = mat.loc[:, mat.columns.notnull()]
     mat = mat.loc[:, ~mat.columns.duplicated()]
-    metadata = pd.read_csv("example_data/Labbe_metadata.txt", sep="\t")
+    metadata = pd.read_csv("../example_data/Labbe_metadata.txt", sep="\t")
     sample_name = [i[0:10] for i in metadata["Sample Name"]]
     diet = metadata["Factor Value[Genotype]"].tolist()
     metadata_dict = dict(zip(sample_name, diet))
@@ -93,7 +92,7 @@ def brown_data(db="KEGG"):
         mat_proc = mat_proc.loc[:, mat_proc.columns.notnull()]
 
     if db == "Cyc":
-        mapping = pd.read_csv("brown2metacyc.txt", sep="\t")
+        mapping = pd.read_csv("../brown2metacyc.txt", sep="\t")
         KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
         mat_proc = mat_proc.rename(columns=KEGG2BioCyc)
         mat_proc = mat_proc[mat_proc.columns.dropna()]
@@ -107,7 +106,7 @@ def brown_data(db="KEGG"):
 
 
 def stevens_data(db="KEGG"):
-    md_raw = pd.read_csv("example_data/Stevens_metadata.txt", sep="\t")
+    md_raw = pd.read_csv("../example_data/Stevens_metadata.txt", sep="\t")
     metadata_list = list(zip(md_raw['Factor Value[CurrentPMH]'], md_raw['Factor Value[Gender]'],
                              md_raw['Factor Value[AgeAtBloodDraw]'],
                              ['Over 75' if val not in ['<=55', '56-60', '61-65', '66-70', '71-75'] else 'Under 75' for val in md_raw['Factor Value[AgeAtBloodDraw]']]))
@@ -120,7 +119,7 @@ def stevens_data(db="KEGG"):
     estrogen_progesterone = [k for k, v in metadata_dict.items() if v[0] not in ['Nonuser', 'E-only', np.nan]]
 
     # Get abundance matrix, transpose to n-samples by m-metabolites
-    mat = pd.read_csv("Stevens_matrix_named_compounds_only.csv", index_col=0)
+    mat = pd.read_csv("../Stevens_matrix_named_compounds_only.csv", index_col=0)
     mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
     stevens_matrix_proc = utils.data_processing(mat_nonusers_estrogen.T, 8, 0)
     stevens_matrix_proc["Group"] = stevens_matrix_proc.index.map(sample_status_dict)
@@ -143,12 +142,12 @@ def stevens_data(db="KEGG"):
     stevens_matrix_proc = stevens_matrix_proc.loc[:, ~stevens_matrix_proc.columns.duplicated()]
 
     if db == "Cyc":
-        mapping = pd.read_csv("stevens2metacyc.txt", sep="\t")
+        mapping = pd.read_csv("../stevens2metacyc.txt", sep="\t")
         KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
         stevens_matrix_proc = stevens_matrix_proc.rename(columns=KEGG2BioCyc)
         stevens_matrix_proc = stevens_matrix_proc[stevens_matrix_proc.columns.dropna()]
 
-    ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:,:-1], stevens_matrix_proc["Group"], "fdr_bh")
+    ttest_res = utils.t_tests(stevens_matrix_proc.iloc[:, :-1], stevens_matrix_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background = stevens_matrix_proc.iloc[:, :-1].columns.tolist()
     return DEM, background, stevens_matrix_proc
@@ -156,8 +155,8 @@ def stevens_data(db="KEGG"):
 
 def zamboni_data(knockout, db="KEGG"):
     # import modified z-scores
-    n_zscore = pd.read_csv("example_data/Fuhrer_mod_zscore_neg_CW.csv.zip", index_col=0)
-    p_zscore = pd.read_csv("example_data/Fuhrer_mod_zscore_pos_CW.csv.zip", index_col=0)
+    n_zscore = pd.read_csv("../example_data/Fuhrer_mod_zscore_neg_CW.csv.zip", index_col=0)
+    p_zscore = pd.read_csv("../example_data/Fuhrer_mod_zscore_pos_CW.csv.zip", index_col=0)
 
     # remove unannotated
     n_zscore = n_zscore[n_zscore.index.notnull()]
@@ -190,10 +189,10 @@ def zamboni_data(knockout, db="KEGG"):
     #             annotations.append(annos[-2])
     #     annotations_pos[ion_index] = annotations
 
-    with open('data/zamboni_pos_annotation_dict.pickle', 'rb') as handle:
+    with open('../data/zamboni_pos_annotation_dict.pickle', 'rb') as handle:
         annotations_pos = pickle.load(handle)
 
-    with open('data/zamboni_neg_annotation_dict.pickle', 'rb') as handle:
+    with open('../data/zamboni_neg_annotation_dict.pickle', 'rb') as handle:
         annotations_neg = pickle.load(handle)
 
     # convert to CHEBI for Reactome
@@ -216,13 +215,13 @@ def zamboni_data(knockout, db="KEGG"):
         # with open('zamboni_CHEBI_mapping.pickle', 'wb') as handle:
         #     pickle.dump(mapping_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        with open('data/zamboni_CHEBI_mapping.pickle', 'rb') as handle:
+        with open('../data/zamboni_CHEBI_mapping.pickle', 'rb') as handle:
             mapping_dict = pickle.load(handle)
             annotations_neg = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_neg.items()}
             annotations_pos = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_pos.items()}
 
     if db == "Cyc":
-        mapping = pd.read_csv("zamboni2metacyc.txt", sep="\t")
+        mapping = pd.read_csv("../zamboni2metacyc.txt", sep="\t")
         mapping_dict = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
         annotations_neg = {k: [mapping_dict[i] if i in mapping_dict.keys() else "" for i in v] for k, v in annotations_neg.items()}
         annotations_pos = {k: [mapping_dict[i] if i in mapping_dict.keys() else "" for i in v] for k, v in
@@ -310,7 +309,7 @@ def auwerx_data(db="KEGG"):
         matrix_proc_copy = matrix_proc_copy.loc[:, matrix_proc_copy.columns.notnull()]
 
     if db == "Cyc":
-        mapping = pd.read_csv("auwerx2metacyc.txt", sep="\t")
+        mapping = pd.read_csv("../auwerx2metacyc.txt", sep="\t")
         KEGG2BioCyc = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
         matrix_proc_copy = matrix_proc_copy.rename(columns=KEGG2BioCyc)
         matrix_proc_copy = matrix_proc_copy[matrix_proc_copy.columns.dropna()]
