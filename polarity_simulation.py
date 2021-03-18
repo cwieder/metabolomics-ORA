@@ -14,9 +14,9 @@ DEM_brown, background_brown, mat_brown = process_datasets.brown_data(db="KEGG")
 DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="KEGG")
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
-KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_mouse_pathways = pd.read_csv("data/KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_human_pathways = pd.read_csv("data/KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_eco_pathways = pd.read_csv("data/KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
 
 
 cols = mat_brown.columns.tolist()

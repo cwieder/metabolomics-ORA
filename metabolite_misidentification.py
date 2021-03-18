@@ -23,15 +23,15 @@ DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import pathway sets
-KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_human_pathways = pd.read_csv("data/KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_eco_pathways = pd.read_csv("data/KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_mouse_pathways = pd.read_csv("data/KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
 all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # Import Reactome pathway sets
-Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
+Reactome_pathways = pd.read_csv("data/Reactome_pathway_set.csv", dtype=str, index_col=0)
 Reactome_human_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("HSA")]
 Reactome_eco_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("ECO")]
 Reactome_mouse_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("MMU")]
@@ -39,8 +39,8 @@ all_reactome_human_bg = list(set([x for x in Reactome_human_pathways.iloc[:, 1:]
 all_reactome_mouse_bg = list(set([x for x in Reactome_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # Import compounds and masses
-KEGG_compounds_masses = pd.read_csv("KEGG_compounds_masses_estimated.csv", names=["compound", "formula", "mass"])
-Reactome_compounds_masses = pd.read_csv("CHEBI_compounds_masses.csv", names=["compound", "formula", "mass"])
+KEGG_compounds_masses = pd.read_csv("data/KEGG_compounds_masses_estimated.csv", names=["compound", "formula", "mass"])
+Reactome_compounds_masses = pd.read_csv("data/CHEBI_compounds_masses.csv", names=["compound", "formula", "mass"])
 
 datasets = {"Labbé": [DEM_brown, background_brown, KEGG_mouse_pathways, all_KEGG_mouse_bg, mat_brown,
                       [i for i in range(0, 40, 5)], [i for i in range(0, 35, 5)], KEGG_compounds_masses],

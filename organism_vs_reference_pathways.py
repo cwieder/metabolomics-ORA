@@ -14,10 +14,10 @@ DEM_yfgM, background_yfgM, mat_yfgM = process_datasets.zamboni_data("yfgM", db="
 DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="KEGG")
 
 # Import pathway sets®
-KEGG_reference_pathways = pd.read_csv("KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_reference_pathways = pd.read_csv("data/KEGG_reference_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_human_pathways = pd.read_csv("data/KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_eco_pathways = pd.read_csv("data/KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_mouse_pathways = pd.read_csv("data/KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
 all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))

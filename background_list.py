@@ -34,15 +34,15 @@ DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="
 # DEM_dcuS, background_dcuS, mat_dcuS = process_datasets.zamboni_data("dcuS", db="Cyc")
 
 # Import KEGG pathway sets
-KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_human_pathways = pd.read_csv("data/KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_eco_pathways = pd.read_csv("data/KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_mouse_pathways = pd.read_csv("data/KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
 all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # Import Reactome pathway sets
-Reactome_pathways = pd.read_csv("Reactome_pathway_set.csv", dtype=str, index_col=0)
+Reactome_pathways = pd.read_csv("data/Reactome_pathway_set.csv", dtype=str, index_col=0)
 Reactome_human_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("HSA")]
 Reactome_eco_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("ECO")]
 Reactome_mouse_pathways = Reactome_pathways[Reactome_pathways.index.str.contains("MMU")]
@@ -50,8 +50,8 @@ all_reactome_human_bg = list(set([x for x in Reactome_human_pathways.iloc[:, 1:]
 all_reactome_mouse_bg = list(set([x for x in Reactome_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # Import BioCyc pathway sets
-BioCyc_human_pathways = pd.read_csv("Metacyc_human_pathways.csv")
-BioCyc_eco_pathways = pd.read_csv("Metacyc_EColi_pathways.csv")
+BioCyc_human_pathways = pd.read_csv("data/Metacyc_human_pathways.csv")
+BioCyc_eco_pathways = pd.read_csv("data/Metacyc_EColi_pathways.csv")
 all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 

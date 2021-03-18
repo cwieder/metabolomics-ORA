@@ -36,9 +36,9 @@ DEM_yfgM_b, background_yfgM_b, mat_yfgM_b = process_datasets.zamboni_data("yfgM"
 DEM_dcuS_b, background_dcuS_b, mat_dcuS_b = process_datasets.zamboni_data("dcuS", db="Cyc")
 
 # Import KEGG pathway sets
-KEGG_human_pathways = pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_eco_pathways = pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
-KEGG_mouse_pathways = pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_human_pathways = pd.read_csv("data/KEGG_human_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_eco_pathways = pd.read_csv("data/KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0)
+KEGG_mouse_pathways = pd.read_csv("data/KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0)
 all_KEGG_human_bg = list(set([x for x in KEGG_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_eco_bg = list(set([x for x in KEGG_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_KEGG_mouse_bg = list(set([x for x in KEGG_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
@@ -52,8 +52,8 @@ all_reactome_human_bg = list(set([x for x in Reactome_human_pathways.iloc[:, 1:]
 all_reactome_mouse_bg = list(set([x for x in Reactome_mouse_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
 # Import BioCyc pathway sets
-BioCyc_human_pathways = pd.read_csv("Metacyc_human_pathways.csv")
-BioCyc_eco_pathways = pd.read_csv("Metacyc_EColi_pathways.csv")
+BioCyc_human_pathways = pd.read_csv("data/Metacyc_human_pathways.csv")
+BioCyc_eco_pathways = pd.read_csv("data/Metacyc_EColi_pathways.csv")
 all_biocyc_human_bg = list(set([x for x in BioCyc_human_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 all_biocyc_eco_bg = list(set([x for x in BioCyc_eco_pathways.iloc[:, 1:].values.flatten() if x is not np.nan]))
 
@@ -132,9 +132,9 @@ for name, v in results_dicts["Reactome"].items():
         all_compounds_in_pathways = all_compounds_in_pathways + pathway_compounds_kegg
     reactome_sig_path_cpds[name] = list(set(all_compounds_in_pathways))
 
-KEGG_human_pathways = process_paths(pd.read_csv("KEGG_human_pathways_compounds.csv", dtype=str, index_col=0))
-KEGG_eco_pathways = process_paths(pd.read_csv("KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0))
-KEGG_mouse_pathways = process_paths(pd.read_csv("KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0))
+KEGG_human_pathways = process_paths(pd.read_csv("data/KEGG_human_pathways_compounds.csv", dtype=str, index_col=0))
+KEGG_eco_pathways = process_paths(pd.read_csv("data/KEGG_ecoMG1655_pathways_compounds.csv", dtype=str, index_col=0))
+KEGG_mouse_pathways = process_paths(pd.read_csv("data/KEGG_mouse_pathways_compounds.csv", dtype=str, index_col=0))
 kegg_pathways_merged = {**KEGG_human_pathways, **KEGG_eco_pathways}
 all_kegg_pathways_merged = {**kegg_pathways_merged, **KEGG_mouse_pathways}
 
