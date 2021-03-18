@@ -24,7 +24,7 @@ Install the required packages
 
 ```
 cd metabolomics-ORA/src
-pip3 install requirements.txt
+pip3 install -r requirements.txt
 ```
 
 <h2>Usage</h2>
