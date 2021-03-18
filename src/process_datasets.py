@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
-from src import utils
+import utils
 import re
 from bioservices import *
 import pickle
 
 kegg_db = KEGG(verbose=False)
+import os
+cwd = os.getcwd()
+print(cwd)
 
 with open('../data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
     metacyc_mapping = pickle.load(handle)
