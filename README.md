@@ -39,4 +39,4 @@ jupyter-notebook reproducible_simulations.ipynb
 MIT
 
 <h2>Contact</h2>
-[cw2019@ic.ac.uk](mailto:cw2019@ic.ac.uk)
+<a href="mailto:cw2019@ic.ac.uk">cw2019@ic.ac.uk</a>
