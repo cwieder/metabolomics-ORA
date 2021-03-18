@@ -15,18 +15,22 @@ is contained within the Jupyter notebook **src/reproducible_simulations.ipynb**.
 
 <h2>Getting started</h2>
 Clone the repository
-```angular2html
+
+```
 git clone https://github.com/cwieder/metabolomics-ORA.git
 ```
 
 Install the required packages
+
 ```
 cd metabolomics-ORA/src
 pip3 install requirements.txt
 ```
+
 <h2>Usage</h2>
 Launch the reproducible_simulations.ipynb Jupyter notebook and run the code cells
-```angular2html
+
+```
 cd metabolomics-ORA/src
 jupyter-notebook reproducible_simulations.ipynb
 ```
