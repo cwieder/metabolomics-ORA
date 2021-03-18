@@ -8,7 +8,7 @@ import scipy.stats as stats
 
 kegg_db = KEGG(verbose=False)
 
-with open('MetaCyc_compound_mapping.pickle', 'rb') as handle:
+with open('data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
     metacyc_mapping = pickle.load(handle)
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
@@ -216,7 +216,7 @@ def zamboni_data(knockout, db="KEGG"):
         # with open('zamboni_CHEBI_mapping.pickle', 'wb') as handle:
         #     pickle.dump(mapping_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        with open('zamboni_CHEBI_mapping.pickle', 'rb') as handle:
+        with open('data/zamboni_CHEBI_mapping.pickle', 'rb') as handle:
             mapping_dict = pickle.load(handle)
             annotations_neg = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_neg.items()}
             annotations_pos = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_pos.items()}
