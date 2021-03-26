@@ -12,7 +12,7 @@ with open('../data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
 def yamada_data(db="KEGG"):
-    data = pd.read_excel("../example_data/Yachida_abundance.xlsx", index_col=0, header=0).T
+    data = pd.read_excel("../example_data/Yachida_abundance.xlsx", index_col=0, header=0, engine='openpyxl').T
     data = data.rename(columns={'Group': 'disease'})
     sample_disease_dict = dict(zip(data.index, data['disease']))
     data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
@@ -66,7 +66,7 @@ def yamada_data(db="KEGG"):
 
 
 def brown_data(db="KEGG"):
-    mat = pd.read_excel("../example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)").T
+    mat = pd.read_excel("../example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)", engine='openpyxl').T
     mapping = dict(zip(mat.columns.tolist(), mat.loc["KEGG", :].tolist()))
     mat = mat.rename(columns=mapping)
     mat = mat.loc[:, mat.columns.notnull()]
@@ -285,7 +285,7 @@ def zamboni_data(knockout, db="KEGG"):
     return DEM, background_list_all_annotations, mat
 
 def auwerx_data(db="KEGG"):
-    mat = pd.read_excel("../example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6).T
+    mat = pd.read_excel("../example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6, engine='openpyxl').T
     mat = mat.iloc[6:, :]
     mat = mat.loc[:, ~mat.columns.duplicated(keep='first')]
     mat = mat.loc[:, mat.columns.notnull()]
