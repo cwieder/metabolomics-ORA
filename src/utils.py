@@ -110,7 +110,7 @@ def t_tests(matrix, classes, multiple_correction_method):
     return results
 
 
-def over_representation_analysis(DEM_list, background_list, pathways_df):
+def over_representation_analysis(DEM_list, background_list, pathways_df, filter_empty=True):
     """
     Function for over representation analysis using Fisher exact test (right tailed)
     :param DEM_list: List of differentially exprssed metabolite IDENTIFIERS
@@ -133,7 +133,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
         # perform ORA for each pathway
         pathway_compounds = list(set(KEGG_pathways.loc[pathway, :].tolist()))
         pathway_compounds = [i for i in pathway_compounds if str(i) != "nan"]
-        if not pathway_compounds or len(pathway_compounds) < 3:
+        if filter_empty and (not pathway_compounds or len(pathway_compounds) < 3):
             # ignore pathway if contains no compounds or has less than 3 compounds
             continue
         else:
@@ -146,7 +146,7 @@ def over_representation_analysis(DEM_list, background_list, pathways_df):
             # not DEM compounds present in pathway
             compound_not_in_pathway_not_DEM = len(np.setdiff1d(np.setdiff1d(background_list, DEM_list), pathway_compounds))
             # compounds in background list not present in pathway
-            if DEM_in_pathway == 0:
+            if filter_empty and DEM_in_pathway == 0:
                 # ignore pathway if there are no DEM compounds in that pathway
                 continue
             else:
