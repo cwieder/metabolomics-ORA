@@ -189,10 +189,10 @@ def zamboni_data(knockout, db="KEGG"):
     #             annotations.append(annos[-2])
     #     annotations_pos[ion_index] = annotations
 
-    with open('../data/zamboni_pos_annotation_dict.pickle', 'rb') as handle:
+    with open('../data/zamboni_pos_annotation_dict2.pickle', 'rb') as handle:
         annotations_pos = pickle.load(handle)
 
-    with open('../data/zamboni_neg_annotation_dict.pickle', 'rb') as handle:
+    with open('../data/zamboni_neg_annotation_dict2.pickle', 'rb') as handle:
         annotations_neg = pickle.load(handle)
 
     # convert to CHEBI for Reactome
