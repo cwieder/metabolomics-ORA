@@ -279,7 +279,7 @@ def zamboni_data(knockout, db="KEGG"):
 
 
 def auwerx_data(db="KEGG"):
-    mat = pd.read_excel("../example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6, engine='openpyxl').T
+    mat = pd.read_csv("../example_data/quiros_abundance.csv", index_col=6).T
     mat = mat.iloc[6:, :]
     mat = mat.loc[:, ~mat.columns.duplicated(keep='first')]
     mat = mat.loc[:, mat.columns.notnull()]
@@ -311,6 +311,4 @@ def auwerx_data(db="KEGG"):
     ttest_res = utils.t_tests(matrix_proc_copy.iloc[:, :-1], matrix_proc_copy["Group"], "fdr_bh")
     DA_metabolites = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background = matrix_proc_copy.iloc[:, :-1].columns.tolist()
-
     return DA_metabolites, background, matrix_proc_copy
-
