@@ -12,7 +12,7 @@ kegg_db = KEGG(verbose=False)
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
 def yamada_data(db="KEGG"):
-    data = pd.read_excel("../example_data/Yachida_abundance.xlsx", index_col=0, header=0, engine='openpyxl').T
+    data = pd.read_csv("../example_data/yachida_abundance.csv", index_col=0, header=0).T
     data = data.rename(columns={'Group': 'disease'})
     sample_disease_dict = dict(zip(data.index, data['disease']))
     data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
@@ -61,12 +61,11 @@ def yamada_data(db="KEGG"):
     ttest_res = utils.t_tests(data_proc.iloc[:, :-1], data_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].tolist()
     background = data_proc.iloc[:, :-1].columns.tolist()
-
     return DEM, background, data_proc
 
-
 def brown_data(db="KEGG"):
-    mat = pd.read_excel("../example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)", engine='openpyxl').T
+    # mat = pd.read_excel("../example_data/Labbe_abundance.xlsx", index_col=0, header=1, sheet_name="OrigScale(tissue)", engine='openpyxl').T
+    mat = pd.read_csv("../example_data/labbe_abundance.csv", index_col=0, header=1).T
     mapping = dict(zip(mat.columns.tolist(), mat.loc["KEGG", :].tolist()))
     mat = mat.rename(columns=mapping)
     mat = mat.loc[:, mat.columns.notnull()]
@@ -100,10 +99,7 @@ def brown_data(db="KEGG"):
     ttest_res = utils.t_tests(mat_proc.iloc[:, :-1], mat_proc["Group"], "fdr_bh")
     DEM = ttest_res[ttest_res["P-adjust"] < 0.05]["Metabolite"].dropna().tolist()
     background = mat_proc.columns.tolist()[:-1]
-
     return DEM, background, mat_proc
-
-
 
 def stevens_data(db="KEGG"):
     md_raw = pd.read_csv("../example_data/Stevens_metadata.txt", sep="\t")
