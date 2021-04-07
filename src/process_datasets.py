@@ -7,8 +7,8 @@ import pickle
 
 kegg_db = KEGG(verbose=False)
 
-with open('../data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
-    metacyc_mapping = pickle.load(handle)
+# with open('../data/MetaCyc_compound_mapping.pickle', 'rb') as handle:
+#     metacyc_mapping = pickle.load(handle)
 # IMPORT DATASETS, PRE-PROCESS THEM AND RUN T-TESTS TO OBTAIN LIST OF DIFFERENTIALLY ABUNDANT METABOLITES
 
 def yamada_data(db="KEGG"):
@@ -201,19 +201,16 @@ def zamboni_data(knockout, db="KEGG"):
         # kegg_id_pos = sorted({x for v in annotations_pos.values() for x in v})
         # kegg_id = list(set(kegg_id_pos + kegg_id_neg))
         # mapping_dict = dict.fromkeys(kegg_id)
-        # print(len(kegg_id))
         #
         # for num, cpd in enumerate(mapping_dict.keys()):
-        #     print(num, cpd)
         #     map_kegg_chebi = kegg_db.conv("chebi", "compound")
         #     try:
         #         chebiID = map_kegg_chebi['cpd:' + cpd]
         #         mapping_dict[cpd] = chebiID
         #     except KeyError:
         #         mapping_dict[cpd] = np.nan
-        # print(mapping_dict)
         # with open('zamboni_CHEBI_mapping.pickle', 'wb') as handle:
-        #     pickle.dump(mapping_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        #     pickle.dump(mapping_dict, handle, protocol=4)
 
         with open('../data/zamboni_CHEBI_mapping.pickle', 'rb') as handle:
             mapping_dict = pickle.load(handle)
@@ -283,6 +280,7 @@ def zamboni_data(knockout, db="KEGG"):
     # mat_pval.iloc[0, :] = [stats.norm.cdf(i) for i in mat_pval.iloc[0, :]]
     # mat_pval.T.to_csv("Zamboni_dcuS_for_IPA.csv")
     return DEM, background_list_all_annotations, mat
+
 
 def auwerx_data(db="KEGG"):
     mat = pd.read_excel("../example_data/Quiros_abundance.xlsx", sheet_name="Metabolomics", index_col=6, engine='openpyxl').T

@@ -11,7 +11,8 @@ Florence Vinson <sup>3</sup>, Juliette Cooke <sup>3</sup>, Rachel Lai <sup>2</su
 
 
 This repository contains the code to run the simulations presented in the study. The Python code to generate the results 
-is contained within the Jupyter notebook **src/reproducible_simulations.ipynb**. Users may adapt the code in the notebook to perform the simulations on their own data.
+is contained within the Jupyter notebook **src/reproducible_simulations.ipynb**. Users may adapt the code in the notebook to perform the simulations on their own data. 
+All code has been tested using Python 3.8. 
 
 <h2>Getting started</h2>
 Clone the repository
