@@ -14,6 +14,7 @@ kegg_db = KEGG(verbose=False)
 def yamada_data(db="KEGG"):
     data = pd.read_csv("../example_data/yachida_abundance.csv", index_col=0, header=0).T
     data = data.rename(columns={'Group': 'disease'})
+    data = data.dropna(0)
     sample_disease_dict = dict(zip(data.index, data['disease']))
     data.columns = data.columns[0:4].tolist() + [col[0:6] for col in data.columns[4:]]
 
