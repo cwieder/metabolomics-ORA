@@ -27,7 +27,7 @@ Install the required packages
 cd metabolomics-ORA/src
 pip3 install -r requirements.txt
 ```
-
+Cloning the repository and installing the dependencies should take less than 10 minutes on a standard desktop computer. 
 <h2>Usage</h2>
 Launch the reproducible_simulations.ipynb Jupyter notebook and run the code cells
 
