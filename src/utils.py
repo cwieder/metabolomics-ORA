@@ -13,9 +13,10 @@ pd.options.mode.chained_assignment = None  # default='warn'
 def data_processing(raw_matrix, firstrow, firstcol):
     '''
     Filtering low abundance metabolites, data cleaning and imputation using minimum value.
-    :param raw_matrix: raw abundance matrix with m-samples and n-metabolites
+    :param raw_matrix: abundance matrix with m-samples and n-metabolites (assumes data is normalised)
     :param firstrow: First row containing values (integer)
-    :return: imputed, log-transformed and standardised matrix
+    :param firstcol: First column containing values (integer)
+    :return: half-minimum imputed, log2-transformed and auto-scaled matrix
     '''
 
     # Remove commas and convert to numeric
@@ -23,9 +24,9 @@ def data_processing(raw_matrix, firstrow, firstcol):
     processed_matrix = processed_matrix.replace(',', '', regex=True)
     processed_matrix = processed_matrix.apply(pd.to_numeric)
     processed_matrix.replace(0, np.nan, inplace=True)
-    processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.9]
 
     # Remove metabolites not present in > 10% of samples
+    processed_matrix = processed_matrix.loc[:, processed_matrix.isnull().mean() < 0.9]
     # Missing value imputation using minimum value/2
     imputed_matrix = processed_matrix.replace(np.nan, processed_matrix.min(axis=0)/2)
     # Log2 transformation

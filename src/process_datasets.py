@@ -278,7 +278,6 @@ def zamboni_data(knockout, db="KEGG"):
     # mat_pval.T.to_csv("Zamboni_dcuS_for_IPA.csv")
     return DEM, background_list_all_annotations, mat
 
-
 def auwerx_data(db="KEGG"):
     mat = pd.read_csv("../example_data/quiros_abundance.csv", index_col=6).T
     mat = mat.iloc[6:, :]
