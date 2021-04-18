@@ -159,7 +159,7 @@ class Dataset:
         estrogen_progesterone = [k for k, v in metadata_dict.items() if v[0] not in ['Nonuser', 'E-only', np.nan]]
 
         # Get abundance matrix, transpose to n-samples by m-metabolites
-        mat = pd.read_csv("../example_data/Stevens_matrix_named_compounds_only.csv", index_col=0)
+        mat = pd.read_csv("../example_data/Stevens_matrix_named_compounds_only.csv", index_col=0, dtype=object)
         mat_nonusers_estrogen = mat.drop((replicate_samples + estrogen_progesterone), axis=1)
         stevens_matrix_proc = utils.data_processing(mat_nonusers_estrogen.T, 8, 0)
         stevens_matrix_proc["Group"] = stevens_matrix_proc.index.map(sample_status_dict)
@@ -249,3 +249,6 @@ class Dataset:
         matrix_proc_copy = matrix_proc.copy()
         matrix_proc_copy['Group'] = mat_selected_groups['Group']
         self.proc_mat = matrix_proc_copy
+
+if __name__ == "__main__":
+    pass

@@ -13,3 +13,4 @@ bs4~=0.0.1
 beautifulsoup4~=4.9.3
 openpyxl~=3.0.7
 notebook~=6.3.0
+tqdm~=4.47.0
