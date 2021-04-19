@@ -35,11 +35,11 @@ Launch the reproducible_simulations.ipynb Jupyter notebook and run the code cell
 cd metabolomics-ORA/src
 jupyter-notebook reproducible_simulations.ipynb
 ```
-<h2>Run in any browser using Google Colaboratory</h2>
+<h2>Run remotely using Google Colaboratory</h2>
 As an alternative to local installation, the Jupyter notebook can now be run 
 as an analogous Google <a href="https://research.google.com/colaboratory/faq.html">Colab</a> version. This does not require any local installation of code, packages, or dependencies, and all
-simulations are run in a browser window. All code is run on one of Google's virtual machines and 
-therefore does not require access to the user's hardware. </br>
+simulations are run in a browser window (Chrome, Firefox, and Safari are supported). All code is run on one of Google's virtual machines and 
+therefore does not require access to the user's hardware. </br></br>
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Ga_PasVyIXOQYwrlYZGEU9iNjqFnOrRh)
 
