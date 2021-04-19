@@ -14,7 +14,7 @@ This repository contains the code to run the simulations presented in the study.
 is contained within the Jupyter notebook **src/reproducible_simulations.ipynb**. Users may adapt the code in the notebook to perform the simulations on their own data. 
 All code has been tested using Python 3.8 on MacOS (v11.2.3) with standard hardware (16GB RAM). 
 
-<h2>Getting started</h2>
+<h2>Getting started: local installation</h2>
 Clone the repository
 
 ```
@@ -35,6 +35,14 @@ Launch the reproducible_simulations.ipynb Jupyter notebook and run the code cell
 cd metabolomics-ORA/src
 jupyter-notebook reproducible_simulations.ipynb
 ```
+<h2>Run in any browser using Google Colab</h2>
+As an alternative to local installation, the Jupyter notebook can now be run 
+as an analogous Google Colab version. This does not require any local installation of code, packages, or dependencies, and all
+simulations are run in a browser window. All code is run on one of Google's virtual machines and 
+therefore does not require access to the user's hardware. 
+
+To get started, open the <a href="https://colab.research.google.com/drive/1Ga_PasVyIXOQYwrlYZGEU9iNjqFnOrRh">Colab notebook</a> 
+and run the cells.
 
 <h2>License</h2>
 MIT
