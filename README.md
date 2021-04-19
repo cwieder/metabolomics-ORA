@@ -39,7 +39,7 @@ jupyter-notebook reproducible_simulations.ipynb
 As an alternative to local installation, the Jupyter notebook can now be run 
 as an analogous Google <a href="https://research.google.com/colaboratory/faq.html">Colab</a> version. This does not require any local installation of code, packages, or dependencies, and all
 simulations are run in a browser window. All code is run on one of Google's virtual machines and 
-therefore does not require access to the user's hardware. 
+therefore does not require access to the user's hardware. </br>
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Ga_PasVyIXOQYwrlYZGEU9iNjqFnOrRh)
 
