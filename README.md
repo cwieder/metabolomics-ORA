@@ -1,5 +1,7 @@
 # Pathway analysis in metabolomics: Pitfalls and best practice for the use of Over-representation Analysis
 
+[![DOI:10.1101/2021.05.24.445406](http://img.shields.io/badge/DOI-10.1101/2021.01.08.425840-B31B1B.svg)](https://doi.org/10.1101/2021.05.24.445406)
+
 Cecilia Wieder <sup>1</sup>, Clément Frainay <sup>3</sup>, Nathalie Poupin <sup>3</sup>, Pablo Rodríguez-Mier <sup>3</sup>,
 Florence Vinson <sup>3</sup>, Juliette Cooke <sup>3</sup>, Rachel PJ Lai <sup>2</sup>, Jacob G Bundy <sup>1</sup>, Fabien Jourdan <sup>3</sup>, Timothy Ebbels <sup>1</sup>
 
