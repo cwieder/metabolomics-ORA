@@ -35,11 +35,10 @@ class Dataset:
         elif self.name == "Quiros":
             self.process_quiros()
 
-        # Change pathway database
-        if dbname != "KEGG":
-            self.pathway_db()
-
         if not self.name.startswith("Fuhrer"):
+            # Change pathway database
+            if dbname != "KEGG":
+                self.pathway_db()
             # Get DA metabolites and background list
             self.get_dem()
 
@@ -169,7 +168,6 @@ class Dataset:
         self.proc_mat = stevens_matrix_proc
 
     def process_fuhrer(self):
-        #TODO implement other database functionality
         knockout = self.name[7:]
         # import modified z-scores
         n_zscore = pd.read_csv("../example_data/Fuhrer_mod_zscore_neg_CW.csv.zip", index_col=0)
@@ -184,6 +182,36 @@ class Dataset:
 
         with open('../data/zamboni_neg_annotation_dict2.pickle', 'rb') as handle:
             annotations_neg = pickle.load(handle)
+
+        # convert to CHEBI for Reactome
+        if self.dbname == "reactome":
+            # kegg_id_neg = sorted({x for v in annotations_neg.values() for x in v})
+            # kegg_id_pos = sorted({x for v in annotations_pos.values() for x in v})
+            # kegg_id = list(set(kegg_id_pos + kegg_id_neg))
+            # mapping_dict = dict.fromkeys(kegg_id)
+            #
+            # for num, cpd in enumerate(mapping_dict.keys()):
+            #     map_kegg_chebi = kegg_db.conv("chebi", "compound")
+            #     try:
+            #         chebiID = map_kegg_chebi['cpd:' + cpd]
+            #         mapping_dict[cpd] = chebiID
+            #     except KeyError:
+            #         mapping_dict[cpd] = np.nan
+            # with open('zamboni_CHEBI_mapping.pickle', 'wb') as handle:
+            #     pickle.dump(mapping_dict, handle, protocol=4)
+
+            with open('../data/zamboni_CHEBI_mapping.pickle', 'rb') as handle:
+                mapping_dict = pickle.load(handle)
+                annotations_neg = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_neg.items()}
+                annotations_pos = {k: [str(mapping_dict[i])[6:] for i in v] for k, v in annotations_pos.items()}
+
+        if self.dbname == "biocyc":
+            mapping = pd.read_csv("../zamboni2metacyc.txt", sep="\t")
+            mapping_dict = dict(zip(mapping["Kegg"].tolist(), mapping["BioCyc"].tolist()))
+            annotations_neg = {k: [mapping_dict[i] if i in mapping_dict.keys() else "" for i in v] for k, v in
+                               annotations_neg.items()}
+            annotations_pos = {k: [mapping_dict[i] if i in mapping_dict.keys() else "" for i in v] for k, v in
+                               annotations_pos.items()}
 
         strain_DA_compounds = dict.fromkeys(n_zscore.columns)
 
@@ -232,9 +260,11 @@ class Dataset:
         all_annotations_df = pd.concat([pos_annos_df, neg_annos_df])
         all_annotations_df = all_annotations_df.set_index(all_annotations_df["Annotation"])
         mat = all_annotations_df.iloc[:, 2:].T
+
         self.proc_mat = mat
         self.dem = DEM
         self.background = background_list_all_annotations
+
 
     def process_quiros(self):
         mat = pd.read_csv("../example_data/quiros_abundance.csv", index_col=6).T
@@ -249,5 +279,5 @@ class Dataset:
         matrix_proc_copy['Group'] = mat_selected_groups['Group']
         self.proc_mat = matrix_proc_copy
 
-if __name__ == "__main__":
-    pass
+fuhrer_dcus_data_r = Dataset("Fuhrer_dcuS", dbname='reactome')
+print(fuhrer_dcus_data_r.dem)
