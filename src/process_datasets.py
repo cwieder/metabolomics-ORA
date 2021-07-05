@@ -31,16 +31,15 @@ class Dataset:
         elif self.name == "Stevens":
             self.process_stevens()
         elif self.name.startswith("Fuhrer"):
-            #TODO sort out fuhrer dem
             self.process_fuhrer()
         elif self.name == "Quiros":
             self.process_quiros()
 
-        if not self.name.startswith("Fuhrer"):
-            # Change pathway database
-            if dbname != "KEGG":
-                self.pathway_db()
+        # Change pathway database
+        if dbname != "KEGG":
+            self.pathway_db()
 
+        if not self.name.startswith("Fuhrer"):
             # Get DA metabolites and background list
             self.get_dem()
 
