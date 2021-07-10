@@ -279,5 +279,3 @@ class Dataset:
         matrix_proc_copy['Group'] = mat_selected_groups['Group']
         self.proc_mat = matrix_proc_copy
 
-fuhrer_dcus_data_r = Dataset("Fuhrer_dcuS", dbname='reactome')
-print(fuhrer_dcus_data_r.dem)
