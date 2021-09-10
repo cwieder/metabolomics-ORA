@@ -1,6 +1,6 @@
 # Pathway analysis in metabolomics: Pitfalls and best practice for the use of Over-representation Analysis
 
-[![DOI:10.1101/2021.05.24.445406](http://img.shields.io/badge/DOI-10.1101/2021.01.08.425840-B31B1B.svg)](https://doi.org/10.1101/2021.05.24.445406)
+[![DOI:10.1371/journal.pcbi.1009105](http://img.shields.io/badge/DOI-10.1371/journal.pcbi.1009105-B31B1B.svg)](https://doi.org/10.1371/journal.pcbi.1009105)
 
 Cecilia Wieder <sup>1</sup>, Clément Frainay <sup>3</sup>, Nathalie Poupin <sup>3</sup>, Pablo Rodríguez-Mier <sup>3</sup>,
 Florence Vinson <sup>3</sup>, Juliette Cooke <sup>3</sup>, Rachel PJ Lai <sup>2</sup>, Jacob G Bundy <sup>1</sup>, Fabien Jourdan <sup>3</sup>, Timothy Ebbels <sup>1</sup>
@@ -53,3 +53,6 @@ MIT
 
 <h2>Contact</h2>
 <a href="mailto:cw2019@ic.ac.uk">cw2019@ic.ac.uk</a>
+
+<h2>Citation</h2>
+Wieder C, Frainay C, Poupin N, Rodríguez-Mier P, Vinson F, et al. (2021) Pathway analysis in metabolomics: Recommendations for the use of over-representation analysis. PLOS Computational Biology 17(9): e1009105. https://doi.org/10.1371/journal.pcbi.1009105
