@@ -43,16 +43,13 @@ as an analogous Google <a href="https://research.google.com/colaboratory/faq.htm
 simulations are run in a browser window (Chrome, Firefox, and Safari are supported). All code is run on one of Google's virtual machines and 
 therefore does not require access to the user's hardware. </br></br>
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Ga_PasVyIXOQYwrlYZGEU9iNjqFnOrRh)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1Dit_EesYxN4z-vV9jBUoDOuWRpZxZoIk?usp=sharing)
 
-To get started, open the <a href="https://colab.research.google.com/drive/1Ga_PasVyIXOQYwrlYZGEU9iNjqFnOrRh">Colab notebook</a> 
+To get started, open the <a href="https://colab.research.google.com/drive/1Dit_EesYxN4z-vV9jBUoDOuWRpZxZoIk?usp=sharing">Colab notebook</a> 
 and run the cells.
 
 <h2>License</h2>
 MIT
-
-<h2>Contact</h2>
-<a href="mailto:cw2019@ic.ac.uk">cw2019@ic.ac.uk</a>
 
 <h2>Citation</h2>
 Wieder C, Frainay C, Poupin N, Rodríguez-Mier P, Vinson F, et al. (2021) Pathway analysis in metabolomics: Recommendations for the use of over-representation analysis. PLOS Computational Biology 17(9): e1009105. https://doi.org/10.1371/journal.pcbi.1009105
